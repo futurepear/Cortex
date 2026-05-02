@@ -143,3 +143,19 @@ export async function watchHerokuLogs(
     }
   }
 }
+
+
+//how to use ts: see the test file TYPE SHI
+
+export function getNewHerokuLogs(filter: string){
+    let queue: string[] = [];
+    watchHerokuLogs((line: string) => {
+        queue.push(line);
+    }, filter);
+
+    return function(){
+        let copy = queue.map(a => a);
+        queue.length = 0;
+        return copy;
+    }
+}
