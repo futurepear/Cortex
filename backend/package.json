@@ -11,12 +11,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.126",
     "express": "^5.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^24.0.0",
-    "tsx": "^4.20.0",
+    "tsx": "^4.21.0",
     "typescript": "~5.7.2"
   }
 }
