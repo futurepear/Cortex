@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.126",
-    "express": "^5.1.0"
+    "@google-cloud/local-auth": "^3.0.1",
+    "express": "^5.1.0",
+    "googleapis": "^171.4.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
