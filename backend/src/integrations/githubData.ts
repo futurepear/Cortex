@@ -1,12 +1,8 @@
 import "dotenv/config";
 import { Octokit } from "@octokit/rest";
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
+import { AIContextBlock } from "./dataTypes.js";
 
-type AIContextBlock = {
-  source: string;
-  title: string;
-  data: unknown;
-};
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN!,
@@ -184,51 +180,6 @@ export async function getGitHubProjectsV2(): Promise<AIContextBlock> {
 }
 
 // ----------------------
-// Heroku logs / Papertrail path
-// ----------------------
-// If Papertrail is attached through Heroku, logs are drained there.
-// This fetches recent Heroku logs using Heroku's log session API.
-// Papertrail itself is mainly a log drain/search UI/add-on.
-
-export async function getHerokuRecentLogs(): Promise<AIContextBlock> {
-  const app = process.env.HEROKU_APP_NAME!;
-  const apiKey = process.env.HEROKU_API_KEY!;
-
-  const res = await fetch(`https://api.heroku.com/apps/${app}/log-sessions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/vnd.heroku+json; version=3",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      lines: 150,
-      tail: false,
-      source: "app",
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Heroku log session failed: ${res.status} ${await res.text()}`);
-  }
-
-  const session: any = await res.json();
-
-  const logsRes = await fetch(session.logplex_url);
-  const logsText = await logsRes.text();
-
-  return {
-    source: "heroku-papertrail",
-    title: "Recent Heroku app logs",
-    data: logsText
-      .split("\n")
-      .filter(Boolean)
-      .slice(-150)
-      .map(line => ({ line })),
-  };
-}
-
-// ----------------------
 // Google Analytics 4
 // ----------------------
 
@@ -264,26 +215,26 @@ export async function getGoogleAnalytics(): Promise<AIContextBlock> {
 // One function to feed AI
 // ----------------------
 
-export async function buildAIContext() {
-  const blocks = await Promise.allSettled([
-    getGitHubIssues(),
-    getGitHubCommits(),
-    getGitHubRepoStats(),
-    getGitHubProjectsV2(),
-    getHerokuRecentLogs(),
-    getGoogleAnalytics(),
-  ]);
+// export async function buildAIContext() {
+//   const blocks = await Promise.allSettled([
+//     getGitHubIssues(),
+//     getGitHubCommits(),
+//     getGitHubRepoStats(),
+//     getGitHubProjectsV2(),
+//     getHerokuRecentLogs(),
+//     getGoogleAnalytics(),
+//   ]);
 
-  return blocks.map((r, i) => {
-    if (r.status === "fulfilled") return r.value;
+//   return blocks.map((r, i) => {
+//     if (r.status === "fulfilled") return r.value;
 
-    return {
-      source: "error",
-      title: `Connector ${i} failed`,
-      data: String(r.reason),
-    };
-  });
-}
+//     return {
+//       source: "error",
+//       title: `Connector ${i} failed`,
+//       data: String(r.reason),
+//     };
+//   });
+// }
 
 // // Example usage
 // if (import.meta.url === `file://${process.argv[1]}`) {
