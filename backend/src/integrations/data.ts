@@ -19,12 +19,12 @@ const repo = process.env.GITHUB_REPO!;
 // GitHub Issues
 // ----------------------
 
-export async function getGitHubIssues(): Promise<AIContextBlock> {
+export async function getGitHubIssues(recentCount: number = 30): Promise<AIContextBlock> {
   const { data } = await octokit.issues.listForRepo({
     owner,
     repo,
     state: "all",
-    per_page: 30,
+    per_page: recentCount,
     sort: "updated",
     direction: "desc",
   });
@@ -32,6 +32,37 @@ export async function getGitHubIssues(): Promise<AIContextBlock> {
   return {
     source: "github",
     title: "Recent GitHub issues",
+    data: data.map(issue => ({
+      number: issue.number,
+      title: issue.title,
+      state: issue.state,
+      labels: issue.labels.map((l: any) => l.name),
+      author: issue.user?.login,
+      comments: issue.comments,
+      createdAt: issue.created_at,
+      updatedAt: issue.updated_at,
+      url: issue.html_url,
+      body: issue.body?.slice(0, 3000),
+    })),
+  };
+}
+
+export async function getAllGitHubIssues(): Promise<AIContextBlock> {
+  const data = await octokit.paginate(
+    octokit.issues.listForRepo,
+    {
+      owner,
+      repo,
+      state: "all",
+      per_page: 100, // max allowed
+      sort: "updated",
+      direction: "desc",
+    }
+  );
+
+  return {
+    source: "github",
+    title: "All GitHub issues",
     data: data.map(issue => ({
       number: issue.number,
       title: issue.title,
@@ -254,18 +285,18 @@ export async function buildAIContext() {
   });
 }
 
-// Example usage
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const context = await buildAIContext();
+// // Example usage
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//   const context = await buildAIContext();
 
-  console.log(
-    JSON.stringify(
-      {
-        generatedAt: new Date().toISOString(),
-        context,
-      },
-      null,
-      2,
-    ),
-  );
-}
+//   console.log(
+//     JSON.stringify(
+//       {
+//         generatedAt: new Date().toISOString(),
+//         context,
+//       },
+//       null,
+//       2,
+//     ),
+//   );
+// }
