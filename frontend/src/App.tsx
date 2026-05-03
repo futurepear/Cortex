@@ -160,7 +160,7 @@ function App() {
             <div className="w-full h-full" onDoubleClick={() => setExpandedIndex(0)}>
               <iframe
                 className="w-full h-full"
-                src="https://analytics.google.com/analytics/web/"
+                src="https://datastudio.google.com/embed/reporting/e0bdae2c-b1b0-4bb4-a09b-e1bdb120a76a/page/r03wF"
               />
             </div>
           </Box>
