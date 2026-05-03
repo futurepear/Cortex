@@ -27,6 +27,34 @@ export type DateRange = {
   endDate: string;
 };
 
+export type GraphPoint = {
+  label: string;
+  value: number;
+};
+
+function gaDateToISO(date: string) {
+  // GA4 date format: YYYYMMDD
+  return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+}
+
+export async function getUsersPerDayGraph(
+  dateRange = ranges.last30Days()
+): Promise<GraphPoint[]> {
+  const data = await runReport({
+    dateRange,
+    dimensions: ["date"],
+    metrics: ["activeUsers"],
+    limit: 1000,
+  });
+
+  return (
+    data.rows?.map((row: any) => ({
+      label: gaDateToISO(row.dimensionValues?.[0]?.value ?? ""),
+      value: Number(row.metricValues?.[0]?.value ?? 0),
+    })) ?? []
+  );
+}
+
 export const ranges = {
   today: (): DateRange => ({
     startDate: "today",
@@ -213,4 +241,51 @@ export async function getTrafficSources(dateRange = ranges.last30Days()) {
       activeUsers: Number(row.metricValues?.[1]?.value ?? 0),
     })) ?? []
   );
+}
+
+
+
+
+function formatDate(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+function monthRangeMonthsAgo(monthsAgo: number): DateRange {
+  const now = new Date();
+
+  const start = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
+  const end = new Date(now.getFullYear(), now.getMonth() - monthsAgo + 1, 0);
+
+  return {
+    startDate: formatDate(start),
+    endDate: formatDate(end),
+  };
+}
+
+function monthLabel(monthsAgo: number) {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
+
+  return d.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+  });
+}
+
+export async function getMAUByMonthGraph(months = 8): Promise<GraphPoint[]> {
+  const points: GraphPoint[] = [];
+
+  for (let i = months - 1; i >= 0; i--) {
+    const data = await runReport({
+      metrics: ["activeUsers"],
+      dateRange: monthRangeMonthsAgo(i),
+    });
+
+    points.push({
+      label: monthLabel(i),
+      value: firstMetricValue(data),
+    });
+  }
+
+  return points;
 }
