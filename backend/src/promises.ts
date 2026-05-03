@@ -21,6 +21,22 @@ const SEED: PromiseItem[] = [
     sources: ["ga4"],
     createdAt: Date.now(),
   },
+  {
+    id: randomUUID(),
+    title: "every dev ships at least every 5 days",
+    description: "every developer listed in the company Employee table should have a commit, PR, or branch push within the last 5 days",
+    sources: ["github", "discord"],
+    enabled: true,
+    createdAt: Date.now(),
+  },
+  {
+    id: randomUUID(),
+    title: "bug reports get addressed within 5 days",
+    description: "every unresolved bug report in the bug-reports forum should either have an open PR or be triaged within 5 days. archived ≠ resolved.",
+    sources: ["discord", "github"],
+    enabled: true,
+    createdAt: Date.now(),
+  },
 ];
 
 export function loadPromises(): PromiseItem[] {

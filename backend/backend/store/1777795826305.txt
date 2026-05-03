@@ -1,1 +1,0 @@
-DAU has cratered to 0. Log analysis shows the 'Arena' server running with 0 CCU and 'NA_1' showing only 1 CCU. The issue correlates with recent deployments (latest: 'open arena hopefully'). Recommend immediate investigation of the Arena server and potential rollback of recent deployment if users cannot connect.
