@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import Box from "./components/Box";
 import RealDataBox from "./components/RealDataBox";
 import Item from "./components/items/ItemTemplate";
-import { MOCK_DISCORD_DATA } from "./mockdata";
+import { MOCK_DISCORD_DATA } from "../mockdata/mockdata";
+import {MOCK_PROMISES} from "../mockdata/mockdata2"
 
 function App() {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
@@ -17,6 +18,7 @@ function App() {
       <RealDataBox
         className="h-full w-64 p-4 shrink-0"
         realDataDiscord={MOCK_DISCORD_DATA}
+        realDataPromises={MOCK_PROMISES}
       />
 
       {/* MAIN AREA */}

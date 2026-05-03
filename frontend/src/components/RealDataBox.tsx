@@ -1,16 +1,20 @@
 import React from "react";
 import type { DiscordMessage } from "../../../backend/src/integrations/discordBot";
 import DiscordItem from "./items/DiscordItem";
+import type { PromiseItem } from "../../../backend/src/models";
+import PromiseItemC from "./items/PromiseItemC";
 
 interface RealDataBoxProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   realDataDiscord?: DiscordMessage[];
+  realDataPromises?: PromiseItem[];
 }
 
 export default function RealDataBox({
   className = "",
   children,
   realDataDiscord,
+  realDataPromises,
   ...props
 }: RealDataBoxProps) {
   return (
@@ -29,6 +33,13 @@ export default function RealDataBox({
 
         {/* 2. MAIN CONTENT AREA */}
         <div className="px-4 py-4 h-3/10 overflow-hidden">
+            {realDataPromises?.toReversed().map(msg => (
+              <PromiseItemC
+                key={msg.id}
+                className="text-white"
+                message={msg}
+              />
+            ))}
         </div>
 
         {/* 3. FOOTER SECTION (ONLY EDITED) */}
