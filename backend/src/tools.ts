@@ -1,3 +1,6 @@
+// IDK WHY WE NEED THIS!
+
+
 import { state } from "./state.js";
 
 export function getPromises() {

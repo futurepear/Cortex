@@ -1,65 +1,38 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+/**
+ * Generic Gemini caller.
+ * messages: array of { role, content }
+ * functions: optional function schemas to include (for function-calling)
+ * returns a normalized response similar to { choices: [{ message: { content } }] }
+ */
+export async function callGemini(messages: any[], functions?: any[], model?: string) {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// export async function analyzeDriftWithLLM(observation: any, promises: any[]) {
+  const prompt = (messages || [])
+    .map((m: any) => `${m.role.toUpperCase()}: ${m.content}`)
+    .join("\n\n");
 
-//   const prompt = `
-// You are a system that detects drift between PROMISES and OBSERVATIONS.
+  const functionsNote = functions ? "\n\nTOOLS:\n" + JSON.stringify(functions) : "";
 
-// PROMISES:
-// ${JSON.stringify(promises, null, 2)}
+  const full = prompt + functionsNote;
 
-// OBSERVATION:
-// ${JSON.stringify(observation, null, 2)}
+  const resp: any = await ai.models.generateContent({
+    model: model || process.env.GEMINI_MODEL || "gemini-3.1-flash-lite-preview",
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: full }],
+      },
+    ],
+  });
 
-// Return JSON ONLY:
-// {
-//   "drift": boolean,
-//   "severity": "low" | "medium" | "critical",
-//   "rootCause": string,
-//   "action": "rollback" | "notify" | "none",
-//   "reasoning": string
-// }
-// `;
-
-//   try {
-//     // 10-second timeout to prevent hanging
-//     const timeoutPromise = new Promise((_, reject) =>
-//       setTimeout(() => reject(new Error("LLM call timed out after 10s")), 10000)
-//     );
-
-//     const response = await Promise.race([
-//       ai.models.generateContent({
-//         model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
-//         contents: [
-//           {
-//             role: "user",
-//             parts: [{ text: prompt }],
-//           },
-//         ],
-//       }),
-//       timeoutPromise,
-//     ]);
-    
-    
-
-//     const text = (response as any).text;
-
-//     const result = JSON.parse(text || "{}");
-//     console.log("LLM drift analysis complete");
-//     return result;
-//   } catch (err) {
-//     console.error("LLM call failed:", (err as any).message);
-//     return { drift: false, action: "none", reasoning: `Error: ${(err as any).message}` };
-//   }
-// }
+  const text = (resp as any).text ?? (resp as any).candidates?.[0]?.content ?? JSON.stringify(resp);
+  return { choices: [{ message: { content: text } }] };
+}
 
 export async function analyzeDriftWithLLM(observationsPrompt: string, promises: any[]) {
-  // HARD-CODED MOCK RESPONSE (for testing purposes without actual LLM calls)
-
+  // Keep the legacy mock for quick tests
   const mockResponse = {
     drift: true,
     severity: "critical",
