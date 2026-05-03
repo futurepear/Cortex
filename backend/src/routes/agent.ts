@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { query } from "@anthropic-ai/claude-agent-sdk";
+import { dispatchAgent } from "../agent.js";
 
 const agentRouter = express.Router();
 
@@ -29,27 +29,15 @@ agentRouter.post("/agents/dispatch", async (req: Request<{}, {}, AgentRequestBod
     req.on("close", () => abort.abort());
 
     try {
-        for await (const message of query({
-            prompt: task,
-            options: {
-                abortController: abort,
-                allowedTools: ["Read", "Edit", "Bash"],
-                cwd: workdir,
-                model: model ?? "claude-haiku-4-5",
-                permissionMode: "bypassPermissions",
-                pathToClaudeCodeExecutable: process.env.CLAUDE_CODE_PATH,
-                systemPrompt: `Only work in ${workdir} you may not read or write outside ${workdir}!`,
-            },
-        })) {
-            if (message.type === "assistant") {
-                for (const block of message.message.content) {
-                    if (block.type === "text") send("text", { text: block.text });
-                    if (block.type === "tool_use") send("tool_use", { name: block.name, input: block.input });
-                }
-            } else if (message.type === "result") {
-                send("result", message);
-            }
-        }
+        const result = await dispatchAgent({
+            task,
+            workdir,
+            model,
+            abort,
+            onText: (text) => send("text", { text }),
+            onToolUse: (name, input) => send("tool_use", { name, input }),
+        });
+        send("result", result);
         send("done", {});
         res.end();
     } catch (err) {
