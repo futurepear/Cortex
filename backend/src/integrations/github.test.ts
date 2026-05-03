@@ -1,6 +1,6 @@
 
 import "../env.js"
-import { getGitHubCommits, getGitHubIssues, getGitHubProjectsV2, getGitHubRepoStats } from "./data.js";
+import { getGitHubCommits, getGitHubIssues, getGitHubProjectsV2, getGitHubRepoStats } from "./githubData.js";
 
 async function main(){
     console.log(await getGitHubIssues());
