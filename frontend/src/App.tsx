@@ -26,20 +26,34 @@ function App() {
 
         {/* TOP ROW */}
         <div className="flex h-1/2 w-full gap-2">
-          {[0, 1, 2].map((i) => (
+          <Box
+              onDoubleClick={() => setExpandedIndex(0)}
+              className={getBoxClass(0)}
+              tag = "Analytics"
+            >
+
+            </Box>
+
             <Box
-              key={i}
-              onDoubleClick={() => setExpandedIndex(i)}
-              className={getBoxClass(i)}
+              tag = "Issues"
+              onDoubleClick={() => setExpandedIndex(1)}
+              className={getBoxClass(1)}
+            >
+              <Item></Item>
+            </Box>
+
+            <Box
+              tag = "Context"
+              onDoubleClick={() => setExpandedIndex(2)}
+              className={getBoxClass(2)}
             >
               <Item />
             </Box>
-          ))}
         </div>
 
         {/* BOTTOM BOX */}
         <div className="flex h-1/2 w-[90%] self-center">
-          <Box className="w-full" />
+          <Box className="w-full" tag = "AI Terminal" />
         </div>
 
       </div>

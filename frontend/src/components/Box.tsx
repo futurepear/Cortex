@@ -6,7 +6,7 @@ interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
 }
 
-export default function Box({ tag = "test", className = "", children, ...props }: BoxProps) {
+export default function Box({ tag = "", className = "", children, ...props }: BoxProps) {
   return (
     <div className={`flex flex-col select-none group ${className}`} {...props}>
       {/* 1. THE TAG (Folder Tab) */}
