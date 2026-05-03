@@ -1,8 +1,8 @@
 import "./env.js";  // must be first so process.env is loaded before anything else reads it
 import express from 'express';
 import { reconcileBatch } from "./reconciler.js";
-import { state, drainObservations } from "./state.js";
-import { startObservationSource } from "./observations.js";
+import { state } from "./state.js";
+import { drainObservations } from "./prompts/observations.js";
 import { loadPromises } from "./promises.js";
 import promisesRouter from "./routes/promises.js";
 
@@ -23,8 +23,8 @@ async function tick() {
 
   state.paused = true;
   try {
-    const batch = drainObservations();
-    await reconcileBatch(batch, state.promises);
+    const prompt = await drainObservations();
+    await reconcileBatch(prompt, state.promises);
   } catch (err) {
     console.error("reconcile error:", (err as any).message);
   } finally {
@@ -41,7 +41,6 @@ export function main() {
   console.log(`cortex starting (reconcile every ${reconcileIntervalMs}ms)`);
   state.promises = loadPromises();
   console.log(`loaded ${state.promises.length} promise(s)`);
-  startObservationSource();
   schedule();
 }
 
