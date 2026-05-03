@@ -4,7 +4,6 @@ import {
   Client,
   GatewayIntentBits,
   Partials,
-  TextBasedChannel,
 } from "discord.js";
 
 export type DiscordMessage = {

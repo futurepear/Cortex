@@ -74,7 +74,7 @@ export async function getOpenPRs(): Promise<AIContextBlock> {
 }
 
 export async function getSortedGitHubIssues(): Promise<AIContextBlock> {
-  const allIssues = await getAllGitHubIssues();
+  const allIssues = await getGitHubIssues();
   const issues = Array.isArray(allIssues.data) ? allIssues.data : [];
 
   const sorted = [...issues].sort((left: any, right: any) => {
