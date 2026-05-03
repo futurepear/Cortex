@@ -33,3 +33,6 @@ npm run dev
 ```
 
 Runs on http://localhost:5173.
+
+
+disclaimer; we used some ai tools to help with development.
