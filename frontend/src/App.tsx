@@ -17,6 +17,7 @@ function App() {
   const [terminalPrompt, setTerminalPrompt] = useState("");
   const [terminalOutput, setTerminalOutput] = useState("");
   const [terminalLoading, setTerminalLoading] = useState(false);
+  const [latestReport, setLatestReport] = useState<{ content: string; modifiedAt: string } | null>(null);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/promises")
@@ -33,6 +34,17 @@ function App() {
       .then((res) => res.json())
       .then((data) => setIssues(data))
       .catch((err) => console.error("failed to fetch issues", err));
+
+    // poll the latest brain report every 5s so the terminal box stays alive
+    const fetchLatestReport = () => {
+      fetch("http://localhost:3001/api/reports?limit=1")
+        .then((res) => res.json())
+        .then((data) => setLatestReport(data[0] ?? null))
+        .catch((err) => console.error("failed to fetch reports", err));
+    };
+    fetchLatestReport();
+    const id = setInterval(fetchLatestReport, 5000);
+    return () => clearInterval(id);
   }, []);
 
   const refreshPromises = () => {
@@ -239,7 +251,10 @@ function App() {
                 </button>
               </div>
               <pre className="text-white flex-1 overflow-auto rounded border border-line-2 bg-black/40 p-3 text-xs text-fg-muted whitespace-pre-wrap">
-                {terminalOutput || "AI terminal output will appear here."}
+                {terminalOutput
+                  || (latestReport
+                    ? `latest brain report (${new Date(latestReport.modifiedAt).toLocaleTimeString()}):\n\n${latestReport.content}`
+                    : "AI terminal output will appear here.")}
               </pre>
             </div>
           </Box>
