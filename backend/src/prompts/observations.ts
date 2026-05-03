@@ -26,21 +26,35 @@ export async function drainObservations(): Promise<string> {
   const newLogs = getLogs();
   const newChat = await safe("main_chat", () => getNewMessages(CONFIG.main_chat), []);
   const newBugReports = await safe("bug_reports", () => getForumPosts(CONFIG.bug_reports), []);
+  const newDevChat = CONFIG.dev_chat
+    ? await safe("dev_chat", () => getNewMessages(CONFIG.dev_chat), [])
+    : [];
 
   return `
 You are receiving the latest Cortex observation batch.
+
+KNOWN CHANNEL IDS:
+- main_chat (PUBLIC, players + community): ${CONFIG.main_chat}
+- bug_reports (PUBLIC forum): ${CONFIG.bug_reports}
+- announcements (PUBLIC, devs post to players): ${CONFIG.announcements}
+- dev_chat (INTERNAL team channel — use this for any developer-internal pings): ${CONFIG.dev_chat || "(not configured)"}
 
 PAPERTRAIL / SERVER NEW LOGS
 filter: ${filter}
 data:
 ${pretty(newLogs)}
 
-DISCORD MAIN CHAT — NEW MESSAGES
+DISCORD MAIN CHAT — NEW MESSAGES (public)
 channelId: ${CONFIG.main_chat}
 data:
 ${pretty(newChat)}
 
-DISCORD BUG REPORTS — FORUM THREADS
+DISCORD DEV CHAT — NEW MESSAGES (internal)
+channelId: ${CONFIG.dev_chat || "(not configured)"}
+data:
+${pretty(newDevChat)}
+
+DISCORD BUG REPORTS — FORUM THREADS (public)
 forumChannelId: ${CONFIG.bug_reports}
 data:
 ${pretty(newBugReports)}`;

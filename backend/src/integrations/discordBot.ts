@@ -30,6 +30,7 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,   // needed so listMembers returns real members + ids
   ],
   partials: [Partials.Channel, Partials.Message],
 });
@@ -123,13 +124,20 @@ export async function getForumPosts(forumChannelId: string, messagesPerPost = 20
 }
 
 export async function sendDiscordMessage(channelId: string, content: string) {
-  const channel = await client.channels.fetch(channelId);
+  // hard safety nets — never let the brain mass-ping
+  if (/@everyone|@here/i.test(content)) {
+    throw new Error("refused: message contains @everyone or @here");
+  }
 
+  const channel = await client.channels.fetch(channelId);
   if (!channel?.isTextBased()) {
     throw new Error("Channel is not text-based");
   }
 
-  const sent = await (channel as any).send(content)!;
+  const sent = await (channel as any).send({
+    content,
+    allowedMentions: { parse: ["users"] },   // only user mentions resolve, not @everyone or @role
+  });
   return cleanMessage(sent);
 }
 
