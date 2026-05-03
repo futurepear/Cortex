@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import Box from "./components/Box";
+import Item from "./Item.tsx"
 
 function App() {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
+  const [updateItem, setUpdateItem] = useState<boolean>(false);
+
 
   // Helper to keep the JSX clean
   const getBoxClass = (index: number) => 
@@ -21,7 +24,12 @@ function App() {
               key={i}
               onDoubleClick={() => setExpandedIndex(i)}
               className={getBoxClass(i)}
-            />
+            >
+              {/*Childen for box */}
+              {items.map(item => (
+                <Item {...item}/>
+              ))}
+            </Box>
           ))}
         </div>
 
