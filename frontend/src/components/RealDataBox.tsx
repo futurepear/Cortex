@@ -53,18 +53,35 @@ export default function RealDataBox({
         {/* 2. MAIN CONTENT AREA */}
         <div className="scrollbox px-4 py-4 overflow-hidden">
             {realDataPromises?.toReversed().map(msg => (
-              <div key={msg.id} className="flex items-start gap-2 group/promise">
+              <div key={msg.id} className="flex flex-row align-center items-start gap-2 group/promise">
                 <PromiseItemC
                   className="text-white flex-1"
                   message={msg}
                 />
                 {onDeletePromise && (
-                  <button
-                    onClick={() => onDeletePromise(msg.id)}
-                    className="rounded bg-red-950 px-2 py-1 text-[10px] uppercase text-red-200 opacity-0 transition-opacity group-hover/promise:opacity-100"
-                  >
-                    Remove
-                  </button>
+    <button
+      onClick={() => onDeletePromise(msg.id)}
+      className="
+        w-6
+        h-full
+        rounded
+        bg-red-950
+        text-red-200
+        text-[10px]
+        uppercase
+        opacity-0
+        transition-all
+        duration-200
+        group-hover/promise:opacity-100
+        flex items-center justify-center
+        hover:h-full
+        hover:scale-y-110
+        origin-center
+      "
+    >
+      Remove
+    </button>
+
                 )}
               </div>
             ))}

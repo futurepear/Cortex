@@ -238,7 +238,7 @@ function App() {
                   {terminalLoading ? "Running..." : "Send"}
                 </button>
               </div>
-              <pre className="flex-1 overflow-auto rounded border border-line-2 bg-black/40 p-3 text-xs text-fg-muted whitespace-pre-wrap">
+              <pre className="text-white flex-1 overflow-auto rounded border border-line-2 bg-black/40 p-3 text-xs text-fg-muted whitespace-pre-wrap">
                 {terminalOutput || "AI terminal output will appear here."}
               </pre>
             </div>
