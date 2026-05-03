@@ -1,6 +1,6 @@
 
 import "../env.js"
-import { init, getDAU, getWAU, getMAU, getCoreStats, getUsersByDay, getTopPages, getTopEvents, getTrafficSources, ranges } from "./index.js"
+import { init, getDAU, getWAU, getMAU, getCoreStats, getUsersByDay, getTopPages, getTopEvents, getTrafficSources, ranges, getMAUByMonthGraph } from "./index.js"
 
 async function main(){
     await init();
@@ -15,5 +15,7 @@ async function main(){
     console.log("Top pages:", await getTopPages(ranges.last7Days()));
     console.log("Top events:", await getTopEvents(ranges.last7Days()));
     console.log("Traffic:", await getTrafficSources(ranges.last30Days()));
+
+    console.log(await getMAUByMonthGraph(10));
 }
 main();
