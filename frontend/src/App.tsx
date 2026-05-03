@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Box from "./components/Box";
 import RealDataBox from "./components/RealDataBox";
-import Item from "./components/items/ItemTemplate";
 import ContextItemC from "./components/items/ContextItemC";
 import { MOCK_DISCORD_DATA } from "../mockdata/mockdata";
 import {MOCK_OBSERVATIONS} from "../mockdata/mockdata3";
