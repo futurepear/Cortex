@@ -1,8 +1,10 @@
 import express from 'express';
-import { PROMISES } from "./mock.js";
 import { reconcileBatch } from "./reconciler.js";
 import { state, drainObservations } from "./state.js";
 import { startObservationSource } from "./observations.js";
+import { loadPromises } from "./promises.js";
+import promisesRouter from "./routes/promises.js";
+import agentRouter from "./routes/agent.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
@@ -37,7 +39,8 @@ function schedule() {
 
 export function main() {
   console.log(`cortex starting (reconcile every ${reconcileIntervalMs}ms)`);
-  state.promises = PROMISES;
+  state.promises = loadPromises();
+  console.log(`loaded ${state.promises.length} promise(s)`);
   startObservationSource();
   schedule();
 }
@@ -52,6 +55,9 @@ app.get('/health', (_req, res) => {
 app.get('/', (_req, res) => {
   res.json({ message: 'Welcome to Cortex Backend!' });
 });
+
+app.use(promisesRouter);
+app.use(agentRouter);
 
 app.listen(port, () => {
   console.log(`Cortex backend listening on http://localhost:${port}`);

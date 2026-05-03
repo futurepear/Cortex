@@ -1,12 +1,4 @@
-import { Observation, PromiseItem } from "./models.js";
-
-export const PROMISES: PromiseItem[] = [
-  {
-    id: "p1",
-    title: "Players must always be > 0",
-    // category: "slo",
-  },
-];
+import { Observation } from "./models.js";
 
 export const OBSERVATIONS: Observation[] = [
   {

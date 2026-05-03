@@ -8,7 +8,9 @@ export interface Observation {
 export interface PromiseItem {
   id: string;
   title: string;
-  // category: "slo" | "product" | "engineering" | "ops"; // For now we are only going to have code fixing stuff, so we dont need this 
+  description: string;     // free text, this is what the brain actually reasons over
+  sources?: string[];      // optional hint, which integrations to look at
+  createdAt: number;
 }
 
 export interface Drift {
