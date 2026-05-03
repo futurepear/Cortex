@@ -1,47 +1,43 @@
 import React, { useState } from "react";
 import Box from "./components/Box";
-import Item from "./components/items/ItemTemplate.tsx"
-import RealDataBox from "./components/RealDataBox.tsx"
-import DiscordItem from "./components/items/DiscordItem.tsx"
-import type { DiscordMessage } from "../../backend/src/integrations/discordBot"
+import RealDataBox from "./components/RealDataBox";
+import Item from "./components/items/ItemTemplate";
+import { MOCK_DISCORD_DATA } from "./mockdata";
 
 function App() {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
-  const [updateItem, setUpdateItem] = useState<boolean>(false);
 
-
-  // Helper to keep the JSX clean
-  const getBoxClass = (index: number) => 
+  const getBoxClass = (index: number) =>
     `box-transition ${expandedIndex === index ? "box-expanded" : "box-shrunk"}`;
 
   return (
     <div className="h-screen w-full flex overflow-hidden">
-      <RealDataBox className="h-full w-64 p-4 shrink-0">
-        
-      </RealDataBox>
-            
+
+      {/* LEFT PANEL */}
+      <RealDataBox
+        className="h-full w-64 p-4 shrink-0"
+        realDataDiscord={MOCK_DISCORD_DATA}
+      />
+
+      {/* MAIN AREA */}
       <div className="flex flex-1 flex-col min-w-0 pt-2 p-2 gap-2">
-        
-        {/* Create three boxes that expande on double click */}
+
+        {/* TOP ROW */}
         <div className="flex h-1/2 w-full gap-2">
           {[0, 1, 2].map((i) => (
-            <Box 
+            <Box
               key={i}
               onDoubleClick={() => setExpandedIndex(i)}
               className={getBoxClass(i)}
             >
-              {/*Childen for box  
-                {items.map(item => (
-                <Item {...item}/>
-              ))}
-              */}
-              <Item></Item>
+              <Item />
             </Box>
           ))}
         </div>
 
+        {/* BOTTOM BOX */}
         <div className="flex h-1/2 w-[90%] self-center">
-          <Box className="w-full"/>
+          <Box className="w-full" />
         </div>
 
       </div>

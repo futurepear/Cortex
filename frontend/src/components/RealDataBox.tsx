@@ -1,12 +1,12 @@
 import React from "react";
+import type { DiscordMessage } from "../../../backend/src/integrations/discordBot";
 
-interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
+interface RealDataBoxProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
-  children?: React.ReactNode;
-  realData?: React.ReactNode;
+  realDataDiscord?: DiscordMessage[];
 }
 
-export default function Box({ className = "", children, realData, ...props }: BoxProps) {
+export default function Box({ className = "", children, realDataDiscord, ...props }: RealDataBoxProps) {
   return (
     <div className={`flex flex-col select-none group ${className}`} {...props}>
       {/* THE MAIN BODY */}
@@ -23,7 +23,6 @@ export default function Box({ className = "", children, realData, ...props }: Bo
 
         {/* 2. MAIN CONTENT AREA */}
         <div className="px-4 py-4 h-3/10 overflow-hidden">
-          {children || <DefaultContent />}
         </div>
 
         {/* 3. THE FOOTER SECTION */}
@@ -39,7 +38,11 @@ export default function Box({ className = "", children, realData, ...props }: Bo
             <span className="font-sans text-[11px] font-medium text-fg uppercase tracking-tight">
               Real Time Data
             </span>
-            {realData}
+              {realDataDiscord?.map(msg => (
+                <div key={msg.id} className="text-[10px] text-fg-dim">
+                  {msg.author}: {msg.content}
+                </div>
+              ))}
           </div>
         </div>
 
