@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Box from "./components/Box";
 import Item from "./components/items/ItemTemplate.tsx"
+import RealDataBox from "./components/RealDataBox.tsx"
 
 function App() {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
@@ -13,7 +14,7 @@ function App() {
 
   return (
     <div className="h-screen w-full flex overflow-hidden">
-      <Box className="h-full w-64 p-4 shrink-0" />
+      <RealDataBox className="h-full w-64 p-4 shrink-0" />
             
       <div className="flex flex-1 flex-col min-w-0 pt-2 p-2 gap-2">
         
