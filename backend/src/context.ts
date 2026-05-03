@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { ContextItem } from "./models.js";
 import { state } from "./state.js";
 import { fetchGoogleDoc } from "./integrations/googleDocs.js";
+import { getAnalytics } from "./integrations/ga4.js";
 
 const FILE = process.env.CONTEXT_FILE || "context.json";
 
@@ -35,9 +36,12 @@ export async function ensureSeedContext() {
     const { title, content } = await fetchGoogleDoc(SEED_DOC_ID);
     addContextDoc({ title, content });
     console.log(`seeded context with "${title}"`);
+    await getAnalytics();
+    console.log(`seeded analyctics`);
   } catch (err) {
     console.error("could not seed context doc:", (err as Error).message);
   }
+  
 }
 
 export function removeContextDoc(id: string): boolean {

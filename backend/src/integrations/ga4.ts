@@ -6,7 +6,7 @@ const GA_PROPERTY_ID = process.env.GA_PROPERTY_ID!;
 // lazy. first call triggers shared google oauth (browser if no token saved yet),
 // every call after returns the cached client
 let analytics: analyticsdata_v1beta.Analyticsdata | null = null;
-async function getAnalytics() {
+export async function getAnalytics() {
   if (analytics) return analytics;
   const auth = await getGoogleAuth();
   analytics = google.analyticsdata({ version: "v1beta", auth: auth as any });
