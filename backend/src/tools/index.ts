@@ -28,7 +28,7 @@ import {
     watchHerokuLogs,
 } from "../integrations/index.js";
 import { getOAuthClient } from "../integrations/oauth.js";
-import { getTopKReportsByDate, searchReportsBM25 } from "../reports/index.js";
+import { getTopKReportsByDate, searchReportsBM25, writeReport } from "../reports/index.js";
 import { ToolRegistry } from "./registry.js";
 
 const tools = new ToolRegistry();
@@ -251,6 +251,20 @@ tools.register({
         setAnalytics(oauth2Client);
         return { ok: true };
     },
+});
+
+tools.register({
+    name: "writeReport",
+    description: "Write and store a new report based on the conversation so far, including analytics summaries, insights, or other synthesized findings.",
+    parameters: {
+        type: "object",
+        properties: {
+            report: { type: "string" },
+        },
+        required: ["report"],
+        additionalProperties: false,
+    },
+    execute: async ({ report }: { report: string }) => writeReport(report),
 });
 
 tools.register({
