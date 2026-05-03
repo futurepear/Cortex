@@ -22,6 +22,7 @@ import {
     getWAU,
     init,
     sendDiscordMessage,
+    sendAnnouncementMessage,
     setAnalytics,
     startDiscordBot,
     watchHerokuLogs,
@@ -117,6 +118,21 @@ tools.register({
     },
     execute: async ({ channelId, content }: { channelId: string; content: string }) =>
         sendDiscordMessage(channelId, content),
+});
+
+tools.register({
+    name: "sendAnnouncementMessage",
+    description: "Send a message to the configured Discord announcements channel.",
+    parameters: {
+        type: "object",
+        properties: {
+            content: { type: "string" },
+        },
+        required: ["content"],
+        additionalProperties: false,
+    },
+    execute: async ({ content }: { content: string }) =>
+        sendAnnouncementMessage(content),
 });
 
 tools.register({

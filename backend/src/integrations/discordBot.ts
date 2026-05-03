@@ -122,3 +122,9 @@ export async function sendDiscordMessage(channelId: string, content: string) {
   const sent = await (channel as any).send(content)!;
   return cleanMessage(sent);
 }
+
+export async function sendAnnouncementMessage(content: string) {
+  const announcementsChannelId = "1006995674946097196";
+
+  return sendDiscordMessage(announcementsChannelId, content);
+}
