@@ -4,7 +4,7 @@ import { reconcileBatch } from "./reconciler.js";
 import { state } from "./state.js";
 import { drainObservations } from "./prompts/observations.js";
 import { loadPromises } from "./promises.js";
-import { loadContext } from "./context.js";
+import { loadContext, ensureSeedContext } from "./context.js";
 import { startDiscordBot } from "./integrations/discordBot.js";
 import promisesRouter from "./routes/promises.js";
 import contextRouter from "./routes/context.js";
@@ -43,6 +43,7 @@ export async function main() {
   console.log(`cortex starting (reconcile every ${reconcileIntervalMs}ms)`);
   state.promises = loadPromises();
   state.context = loadContext();
+  await ensureSeedContext();
   console.log(`loaded ${state.promises.length} promise(s), ${state.context.length} context doc(s)`);
   try {
     await startDiscordBot();

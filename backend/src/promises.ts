@@ -23,8 +23,16 @@ const SEED: PromiseItem[] = [
   },
   {
     id: randomUUID(),
+    title: "devs are consistently shipping",
+    description: "every active developer should be making commits, opening PRs, or pushing to a branch on a regular cadence (at least once every 5 days). use github_getRecentCommits, github_getOpenPRs, and github_listBranches to check who's been active. cross-reference with discord_listMembers to get the human members. if a known dev hasn't shown activity in 5+ days, post a friendly check-in message in the main chat using discord_sendMessage and @ them with their mention string. don't message anyone you've already pinged in the last week (check past reports). only ping real humans, never bots.",
+    sources: ["github", "discord"],
+    enabled: true,
+    createdAt: Date.now(),
+  },
+  {
+    id: randomUUID(),
     title: "discord bug reports get fixed",
-    description: "for every unresolved bug report in the bug-reports channel, dispatch a coding agent on the main branch to investigate and attempt a fix. err on the side of trying — the coding agent can read the codebase itself, you don't need to pinpoint the cause first. one agent dispatch per bug report. they will open PRs but not merge.",
+    description: "look at every bug report thread in the bug-reports channel — both active AND archived (discord auto-archives threads after inactivity, archived does NOT mean fixed). for each thread, judge whether it's a real code bug that's still unaddressed by reading the messages. SKIP a thread only if: (a) an open PR already addresses it (call github_getOpenPRs first), (b) the team has explicitly said it's fixed, or (c) it's not a code bug at all (e.g. complaints about cheaters, feature requests, generic questions). for every remaining unaddressed bug report, dispatch a coding agent on the main branch — the coding agent can investigate the codebase itself, you don't need to pinpoint the cause. prioritize most recent unfixed bugs first. they will open PRs but not merge.",
     sources: ["discord"],
     enabled: true,
     createdAt: Date.now(),

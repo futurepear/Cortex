@@ -2,7 +2,7 @@
 import fs from "fs/promises";
 import path from "path";
 
-const STORE_DIR = path.join(process.cwd(), "backend", "store");
+const STORE_DIR = path.join(process.cwd(), "store");
 
 export async function writeReport(report: string) {
   await fs.mkdir(STORE_DIR, { recursive: true });
