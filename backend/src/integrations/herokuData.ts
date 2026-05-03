@@ -149,9 +149,10 @@ export async function watchHerokuLogs(
 
 export function getNewHerokuLogs(filter: string){
     let queue: string[] = [];
+    // fire and forget. if heroku creds are bad we just get no logs, don't crash the app
     watchHerokuLogs((line: string) => {
         queue.push(line);
-    }, filter);
+    }, filter).catch(err => console.error("[heroku] watch failed:", err.message));
 
     return function(){
         let copy = queue.map(a => a);
