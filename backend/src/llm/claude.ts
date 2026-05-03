@@ -2,8 +2,9 @@ import { query, createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk"
 import { z } from "zod";
 import { ToolRegistry } from "../tools/registry.js";
 import type { AgentResult } from "./gemini.js";
+import { bus } from "../events.js";
 
-const MODEL = process.env.CLAUDE_MODEL || "claude-opus-4-7";
+const MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-6";
 
 // our tool registry stores raw json schema. claude-agent-sdk wants a zod raw shape.
 // shallow conversion — good enough for our flat object schemas
@@ -72,6 +73,7 @@ export async function runAgentLoop(registry: ToolRegistry, prompt: string, _maxR
           const name = block.name.replace(/^mcp__cortex__/, "");
           process.stdout.write(`\n[tool call] ${name} ${JSON.stringify(block.input)}\n`);
           actualCalls.push({ name, args: block.input });
+          bus.publish({ type: "tool:call", t: Date.now(), tool: name, args: block.input });
         }
       }
     }

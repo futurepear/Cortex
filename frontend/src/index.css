@@ -63,15 +63,24 @@ html, body, #root {
 .scrollbox {
   overflow-y: auto;
   scroll-behavior: smooth;
-
-  /* Firefox */
-  scrollbar-width: none;
-
-  /* IE / Edge legacy */
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
 }
 
-/* Chrome / Safari / Edge */
-.scrollbox::-webkit-scrollbar {
-  display: none;
+.scrollbox::-webkit-scrollbar { width: 6px; }
+.scrollbox::-webkit-scrollbar-track { background: transparent; }
+.scrollbox::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 3px;
 }
+.scrollbox::-webkit-scrollbar-thumb:hover { background: var(--color-cy-dim); }
+
+/* apply the same to anything else that scrolls so we don't get the chunky default */
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--color-cy-dim); }
+* { scrollbar-width: thin; scrollbar-color: var(--color-line) transparent; }

@@ -2,6 +2,7 @@ import { PromiseItem, ContextItem } from "./models.js";
 import { runAgentLoop } from "./llm/index.js";
 import { tools, resetDispatchCounter } from "./tools/index.js";
 import { writeReport, getTopKReportsByDate } from "./reports/index.js";
+import { bus } from "./events.js";
 
 // set true to force a test PR + announcement on first tick. flip back when done
 let firstTick = false;
@@ -37,6 +38,9 @@ export async function reconcileBatch(observationsPrompt: string, promises: Promi
   console.log(`brain analyzing... (boldness=${BOLDNESS}, context=[${titles}])`);
   resetDispatchCounter();
 
+  const tickStart = Date.now();
+  bus.publish({ type: "tick:start", t: tickStart });
+
   const active = promises.filter(p => p.enabled !== false);
   const recent = await getTopKReportsByDate(MEMORY_SIZE);
   const fullPrompt = buildPrompt(observationsPrompt, active, context, recent, firstTick);
@@ -56,6 +60,8 @@ export async function reconcileBatch(observationsPrompt: string, promises: Promi
   }
 
   await writeReport(report);
+  bus.publish({ type: "report", t: Date.now(), preview: text.slice(0, 280) });
+  bus.publish({ type: "tick:end", t: Date.now(), durationMs: Date.now() - tickStart });
 }
 
 function buildPrompt(

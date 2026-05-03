@@ -5,6 +5,7 @@ import { getFilteredHerokuRecentLogs } from "../integrations/herokuData.js";
 import { getCoreStats } from "../integrations/ga4.js";
 import { writeReport } from "../reports/index.js";
 import { dispatchAgent } from "../agent.js";
+import { bus } from "../events.js";
 
 // one shared registry for the whole app
 export const tools = new ToolRegistry();
@@ -184,6 +185,7 @@ Workflow (do this exactly, do NOT merge):
 Report back the branch name and PR url. Do not merge.`;
 
     console.log(`\n[claude start] ${task.slice(0, 80)}...`);
+    bus.publish({ type: "agent:start", t: Date.now(), task });
     const result = await dispatchAgent({
       task: wrapped,
       workdir: process.env.CODEBASE_PATH!,
@@ -191,6 +193,7 @@ Report back the branch name and PR url. Do not merge.`;
       onToolUse: (name, input) => console.log(`[claude tool] ${name} ${JSON.stringify(input).slice(0, 200)}`),
     });
     console.log(`[claude done]`);
+    bus.publish({ type: "agent:done", t: Date.now() });
     return { text: result.text, toolUseCount: result.toolUses.length };
   },
 });

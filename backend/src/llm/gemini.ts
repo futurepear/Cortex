@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { ToolRegistry } from "../tools/registry.js";
+import { bus } from "../events.js";
 
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite-preview";
 
@@ -65,6 +66,7 @@ export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRo
     for (const part of functionCallParts) {
       const call = (part as any).functionCall;
       actualCalls.push({ name: call.name, args: call.args ?? {} });
+      bus.publish({ type: "tool:call", t: Date.now(), tool: call.name, args: call.args ?? {} });
       try {
         const result = await registry.run(call.name, call.args ?? {});
         responses.push({ functionResponse: { name: call.name, response: { result } } });

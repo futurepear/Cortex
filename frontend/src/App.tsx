@@ -17,6 +17,7 @@ function App() {
   const [terminalLoading, setTerminalLoading] = useState(false);
   const [latestReport, setLatestReport] = useState<{ content: string; modifiedAt: string } | null>(null);
   const [observations, setObservations] = useState<any[]>([]);
+  const [liveEvents, setLiveEvents] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/promises")
@@ -48,8 +49,34 @@ function App() {
     };
     refreshLive();
     const id = setInterval(refreshLive, 5000);
-    return () => clearInterval(id);
+
+    // SSE — live brain activity feed (tick start/end, tool calls, agent runs, reports)
+    const es = new EventSource("http://localhost:3001/api/events");
+    es.onmessage = (e) => {
+      try {
+        const ev = JSON.parse(e.data);
+        if (ev.type === "hello") return;
+        setLiveEvents(prev => [...prev.slice(-99), ev]);
+      } catch {}
+    };
+
+    return () => {
+      clearInterval(id);
+      es.close();
+    };
   }, []);
+
+  function describeEvent(ev: any): string {
+    switch (ev.type) {
+      case "tick:start": return "tick started";
+      case "tick:end": return `tick done (${ev.durationMs}ms)`;
+      case "tool:call": return `tool: ${ev.tool} ${JSON.stringify(ev.args).slice(0, 100)}`;
+      case "agent:start": return `claude agent dispatched: ${String(ev.task).slice(0, 100)}`;
+      case "agent:done": return "claude agent finished";
+      case "report": return `report written: ${ev.preview.slice(0, 80)}…`;
+      default: return JSON.stringify(ev);
+    }
+  }
 
   const refreshPromises = () => {
     fetch("http://localhost:3001/api/promises")
@@ -242,6 +269,21 @@ function App() {
         <div className="flex h-1/2 w-[90%] self-center">
           <Box className="w-full" tag = "AI Terminal">
             <div className="flex h-full flex-col gap-3">
+              {/* live brain activity stream (SSE) */}
+              <div className="flex flex-col rounded border border-line-2 bg-black/30 p-2 max-h-32 overflow-hidden">
+                <div className="font-mono text-[9px] uppercase tracking-widest text-cy mb-1">Live Brain Activity</div>
+                <div className="scrollbox flex-1 overflow-y-auto text-[10px] font-mono text-fg-muted space-y-0.5">
+                  {liveEvents.length === 0
+                    ? <div className="text-fg-faint">waiting for the brain to do something…</div>
+                    : liveEvents.slice().reverse().map((ev, i) => (
+                        <div key={`${ev.t}-${i}`} className="flex gap-2">
+                          <span className="text-fg-faint shrink-0">{new Date(ev.t).toLocaleTimeString()}</span>
+                          <span className="truncate text-white">{describeEvent(ev)}</span>
+                        </div>
+                      ))}
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <input
                   value={terminalPrompt}
