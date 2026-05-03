@@ -11,6 +11,8 @@ interface RealDataBoxProps extends React.HTMLAttributes<HTMLDivElement> {
   realDataDiscord?: DiscordMessage[];
   realDataPromises?: PromiseItem[];
   realDataObservation?: Observation[];
+  onDeletePromise?: (id: string) => void;
+  onOpenAddPromise?: () => void;
 }
 
 export default function RealDataBox({
@@ -19,6 +21,8 @@ export default function RealDataBox({
   realDataDiscord,
   realDataPromises,
   realDataObservation,
+  onDeletePromise,
+  onOpenAddPromise,
   ...props
 }: RealDataBoxProps) {
   return (
@@ -29,20 +33,40 @@ export default function RealDataBox({
         
         {/* 1. TOP TITLE SECTION */}
         <div className="px-4 pt-3">
-          <span className="font-mono text-[11px] font-medium text-fg uppercase tracking-tight">
-            Promises
-          </span>
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-mono text-[11px] font-medium text-fg uppercase tracking-tight">
+              Promises
+            </span>
+            {onOpenAddPromise && (
+              <button
+                onClick={onOpenAddPromise}
+                aria-label="Add promise"
+                className="grid h-6 w-6 place-items-center rounded-full border border-cy/60 text-cy transition-colors hover:bg-cy hover:text-bg-2"
+              >
+                +
+              </button>
+            )}
+          </div>
           <div className="h-[1px] w-full bg-line-2 mt-2" />
         </div>
 
         {/* 2. MAIN CONTENT AREA */}
-        <div className="scrollbox px-4 py-4 h-3/10 overflow-hidden">
+        <div className="scrollbox px-4 py-4 overflow-hidden">
             {realDataPromises?.toReversed().map(msg => (
-              <PromiseItemC
-                key={msg.id}
-                className="text-white"
-                message={msg}
-              />
+              <div key={msg.id} className="flex items-start gap-2 group/promise">
+                <PromiseItemC
+                  className="text-white flex-1"
+                  message={msg}
+                />
+                {onDeletePromise && (
+                  <button
+                    onClick={() => onDeletePromise(msg.id)}
+                    className="rounded bg-red-950 px-2 py-1 text-[10px] uppercase text-red-200 opacity-0 transition-opacity group-hover/promise:opacity-100"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
             ))}
         </div>
 

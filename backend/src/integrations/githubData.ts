@@ -74,6 +74,24 @@ export async function getAllGitHubIssues(): Promise<AIContextBlock> {
   };
 }
 
+export async function getSortedGitHubIssues(): Promise<AIContextBlock> {
+  const allIssues = await getAllGitHubIssues();
+  const issues = Array.isArray(allIssues.data) ? allIssues.data : [];
+
+  const sorted = [...issues].sort((left: any, right: any) => {
+    const leftOpen = left.state === "open" ? 0 : 1;
+    const rightOpen = right.state === "open" ? 0 : 1;
+    if (leftOpen !== rightOpen) return leftOpen - rightOpen;
+    return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+  });
+
+  return {
+    ...allIssues,
+    title: "Sorted GitHub issues",
+    data: sorted,
+  };
+}
+
 // ----------------------
 // GitHub Commits
 // ----------------------

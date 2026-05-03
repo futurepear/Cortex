@@ -8,6 +8,8 @@ import { loadContext } from "./context.js";
 import { startDiscordBot } from "./integrations/discordBot.js";
 import promisesRouter from "./routes/promises.js";
 import contextRouter from "./routes/context.js";
+import issuesRouter from "./routes/issues.js";
+import terminalRouter from "./routes/terminal.js";
 import cors from 'cors';
 
 
@@ -70,6 +72,8 @@ app.get('/', (_req, res) => {
 
 app.use('/api', promisesRouter);
 app.use('/api', contextRouter);
+app.use('/api', issuesRouter);
+app.use('/api', terminalRouter);
 
 app.listen(port, () => {
   console.log(`Cortex backend listening on http://localhost:${port}`);
