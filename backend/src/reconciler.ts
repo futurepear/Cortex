@@ -3,24 +3,15 @@ import { emitDrift } from "./tools.js";
 import { rollbackDeployment } from "./actions.js";
 import { analyzeDriftWithLLM } from "./llm/gemini.js";
 
-// Fallback heuristic for drift detection (used if LLM is unavailable)
-// export function detectDriftHeuristic(obs: Observation, promises: PromiseItem[]) {
-//   if (obs.type === "player_count" && obs.payload.value === 0) {
-//     return {
-//       drift: true,
-//       promiseIds: ["p1"],
-//       action: "rollback",
-//       rootCause: "Player count dropped to 0",
-//     };
-//   }
+export async function reconcileBatch(observations: Observation[], promises: PromiseItem[]) {
+  if (observations.length === 0) {
+    console.log("Nothing to reconcile.");
+    return;
+  }
 
-//   return { drift: false };
-// }
+  console.log(`Brain analyzing batch of ${observations.length} observation(s)...`);
 
-export async function handleObservation(observation: Observation, promises: PromiseItem[]) {
-  console.log("Brain analyzing...");
-
-  const result = await analyzeDriftWithLLM(observation, promises);
+  const result = await analyzeDriftWithLLM(observations, promises);
 
   console.log("Analysis complete:", result);
 

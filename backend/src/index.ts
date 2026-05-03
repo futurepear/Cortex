@@ -1,39 +1,56 @@
 import express from 'express';
 import { PROMISES, OBSERVATIONS } from "./mock.js";
-import { handleObservation } from "./reconciler.js";
-import { state } from "./state.js";
+import { reconcileBatch } from "./reconciler.js";
+import { state, addObservation, drainObservations } from "./state.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
+const reconcileIntervalMs = Number(process.env.RECONCILE_INTERVAL_MS) || 20_000;
 
 app.use(express.json());
 
-// fake "stream source" for now
+// fake "stream source" for now: every 2s, push one mock observation onto the queue
 let i = 0;
-
-function getNextObservation() {
-  const obs = OBSERVATIONS[i % OBSERVATIONS.length];
-  i++;
-  return obs;
+function startMockObservationSource() {
+  setInterval(() => {
+    const obs = OBSERVATIONS[i % OBSERVATIONS.length];
+    i++;
+    addObservation(obs);
+    console.log("Observation queued:", obs);
+  }, 2000);
 }
-//  fake source stream ends here
+
+// Reconcile loop: drains queue + analyzes batch, then schedules next run.
+// Self-rescheduling (not setInterval) so a long reconcile can't overlap itself.
+let isReconciling = false;
+async function reconcileTick() {
+  if (isReconciling) {
+    console.log("Reconcile already in progress, skipping tick.");
+    scheduleNextReconcile();
+    return;
+  }
+
+  isReconciling = true;
+  try {
+    const batch = drainObservations();
+    await reconcileBatch(batch, state.promises);
+  } catch (err) {
+    console.error("Reconcile error:", (err as any).message);
+  } finally {
+    isReconciling = false;
+    scheduleNextReconcile();
+  }
+}
+
+function scheduleNextReconcile() {
+  setTimeout(reconcileTick, reconcileIntervalMs);
+}
 
 export function main() {
-  console.log("Cortex starting...");
-
+  console.log(`Cortex starting... (reconcile interval: ${reconcileIntervalMs}ms)`);
   state.promises = PROMISES;
-
-  setInterval(async () => {
-    const obs = getNextObservation();
-
-    console.log("\n New observation:", obs);
-
-    try {
-      await handleObservation(obs, state.promises);
-    } catch (err) {
-      console.error(" Error processing observation:", (err as any).message);
-    }
-  }, 2000);
+  startMockObservationSource();
+  scheduleNextReconcile();
 }
 
 
@@ -49,6 +66,5 @@ app.get('/', (_req, res) => {
 
 app.listen(port, () => {
   console.log(`Cortex backend listening on http://localhost:${port}`);
-  // start the demo run after server is listening
   main();
 });
