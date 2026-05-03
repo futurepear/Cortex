@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Box from "./components/Box";
-import Item from "./Item.tsx"
+import Item from "./components/items/ItemTemplate.tsx"
 
 function App() {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
@@ -25,10 +25,12 @@ function App() {
               onDoubleClick={() => setExpandedIndex(i)}
               className={getBoxClass(i)}
             >
-              {/*Childen for box */}
-              {items.map(item => (
+              {/*Childen for box  
+                {items.map(item => (
                 <Item {...item}/>
               ))}
+              */}
+              <Item></Item>
             </Box>
           ))}
         </div>

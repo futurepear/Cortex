@@ -36,4 +36,25 @@ html, body, #root {
   .panel-glow {
     box-shadow: inset 0 0 20px rgba(34, 211, 238, 0.02), 0 0 10px rgba(34, 211, 238, 0.05);
   }
+
+  /* item tsx */
+
+  @layer components {
+  .para-box {
+    --skew: 20deg;
+    @apply relative flex flex-col justify-center items-center 
+           bg-bg-2 border border-line rounded-xl 
+           transition-all duration-300;
+    transform: skewX(var(--skew));
+  }
+
+  /* Target the direct child to un-skew the content */
+  .para-box > * {
+    transform: skewX(calc(var(--skew) * -1));
+  }
+
+  .para-box:hover {
+    @apply border-cy/50 shadow-[0_0_15px_rgba(34,211,238,0.1)];
+  }
+}
 }
