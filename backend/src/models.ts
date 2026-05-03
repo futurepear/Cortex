@@ -16,6 +16,7 @@ export interface PromiseItem {
   title: string;
   description: string;     // free text, this is what the brain actually reasons over
   sources?: string[];      // optional hint, which integrations to look at
+  enabled?: boolean;       // undefined treated as true. set false to silence without deleting
   createdAt: number;
 }
 

@@ -21,6 +21,14 @@ const SEED: PromiseItem[] = [
     sources: ["ga4"],
     createdAt: Date.now(),
   },
+  {
+    id: randomUUID(),
+    title: "discord bug reports get fixed",
+    description: "for every unresolved bug report in the bug-reports channel, dispatch a coding agent on the main branch to investigate and attempt a fix. err on the side of trying — the coding agent can read the codebase itself, you don't need to pinpoint the cause first. one agent dispatch per bug report. they will open PRs but not merge.",
+    sources: ["discord"],
+    enabled: true,
+    createdAt: Date.now(),
+  },
 ];
 
 export function loadPromises(): PromiseItem[] {

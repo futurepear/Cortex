@@ -1,5 +1,0 @@
-Cortex Observation Report:
-- Promise check: "App stays up" - PASSED. Heroku logs show consistent 200 responses and no crash/5xx error patterns.
-- Promise check: "DAU doesn't crater" - INCONCLUSIVE/WARNING. GA4 returned 0 users for the last week. While the Heroku logs show activity ("Log session created from app"), the analytics data appears to be failing to track or report users.
-
-Action: Investigation needed into why GA4 is reporting 0 active users despite live server activity. No destructive actions (announcements) taken as service is up.

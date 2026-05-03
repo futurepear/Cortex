@@ -3,7 +3,15 @@ import { runAgentLoop } from "./llm/gemini.js";
 import { tools } from "./tools/index.js";
 
 // set true to force a test PR + announcement on first tick. flip back when done
-let firstTick = true;
+let firstTick = false;
+
+// how willing the brain is to act. set BOLDNESS=low|medium|high in env
+const BOLDNESS = (process.env.BOLDNESS ?? "high") as "low" | "medium" | "high";
+const stances = {
+  low: "Be cautious. Only take destructive actions (dispatch a coding agent, send a discord message) when drift is unambiguous and you have strong evidence. When in doubt, write a report and observe.",
+  medium: "Be balanced. Take destructive actions when drift is clear and you have reasonable confidence. Otherwise observe and report.",
+  high: "Be proactive. Err on the side of trying. Dispatch a coding agent on plausible bug reports — the agent can investigate the codebase itself, you don't need to pinpoint the cause first. Send announcements when the team should know. Don't wait to be 100% sure.",
+};
 
 export async function reconcileBatch(observationsPrompt: string, promises: PromiseItem[], context: ContextItem[]) {
   if (!observationsPrompt.trim()) {
@@ -11,9 +19,10 @@ export async function reconcileBatch(observationsPrompt: string, promises: Promi
     return;
   }
 
-  console.log("brain analyzing...");
+  console.log(`brain analyzing... (boldness=${BOLDNESS})`);
 
-  const fullPrompt = buildPrompt(observationsPrompt, promises, context, firstTick);
+  const active = promises.filter(p => p.enabled !== false);
+  const fullPrompt = buildPrompt(observationsPrompt, active, context, firstTick);
   firstTick = false;
   const report = await runAgentLoop(tools, fullPrompt);
 
@@ -31,6 +40,8 @@ This is to verify the branch+PR and announcement plumbing works.` : "";
 
   return `you are cortex, the company brain. your job is to look at fresh observations and check if any company promise has drifted.
 
+STANCE: ${stances[BOLDNESS]}
+
 PROMISES (things that should always be true):
 ${promises.map(p => `- ${p.title}: ${p.description}`).join("\n") || "(none)"}
 
@@ -40,5 +51,5 @@ ${context.map(c => `## ${c.title}\n${c.content}`).join("\n\n") || "(none)"}
 LATEST OBSERVATIONS:
 ${observations}
 
-if a promise has drifted, investigate using the available tools, then write a short report explaining what's wrong and what to do. if you decide to take a destructive action like sending a discord announcement, only do it when you're sure. if everything looks fine, just say so.${testBlock}`;
+if a promise has drifted, investigate using the available tools and act according to your stance above. write a short report at the end explaining what you found and what you did.${testBlock}`;
 }

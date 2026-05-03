@@ -123,6 +123,22 @@ export async function sendDiscordMessage(channelId: string, content: string) {
   return cleanMessage(sent);
 }
 
+export function listGuilds() {
+  return [...client.guilds.cache.values()].map(g => ({ id: g.id, name: g.name }));
+}
+
+function channelTypeName(t: number): string {
+  return ({ 0: "text", 2: "voice", 4: "category", 5: "announcement", 11: "thread", 13: "stageVoice", 15: "forum" } as any)[t] ?? `type${t}`;
+}
+
+export async function listChannels(guildId: string) {
+  const guild = await client.guilds.fetch(guildId);
+  const channels = await guild.channels.fetch();
+  return [...channels.values()]
+    .filter(Boolean)
+    .map((c: any) => ({ id: c.id, name: c.name, type: channelTypeName(c.type) }));
+}
+
 export async function sendAnnouncementMessage(content: string) {
   const announcementsChannelId = "1006995674946097196";
 
