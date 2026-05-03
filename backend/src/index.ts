@@ -11,6 +11,7 @@ import contextRouter from "./routes/context.js";
 import issuesRouter from "./routes/issues.js";
 import terminalRouter from "./routes/terminal.js";
 import reportsRouter from "./routes/reports.js";
+import observationsRouter from "./routes/observations.js";
 import cors from 'cors';
 
 
@@ -77,6 +78,7 @@ app.use('/api', contextRouter);
 app.use('/api', issuesRouter);
 app.use('/api', terminalRouter);
 app.use('/api', reportsRouter);
+app.use('/api', observationsRouter);
 
 app.listen(port, () => {
   console.log(`Cortex backend listening on http://localhost:${port}`);

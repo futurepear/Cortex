@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import Box from "./components/Box";
 import RealDataBox from "./components/RealDataBox";
 import ContextItemC from "./components/items/ContextItemC";
-import { MOCK_DISCORD_DATA } from "../mockdata/mockdata";
-import {MOCK_OBSERVATIONS} from "../mockdata/mockdata3";
 
 function App() {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
@@ -18,6 +16,7 @@ function App() {
   const [terminalOutput, setTerminalOutput] = useState("");
   const [terminalLoading, setTerminalLoading] = useState(false);
   const [latestReport, setLatestReport] = useState<{ content: string; modifiedAt: string } | null>(null);
+  const [observations, setObservations] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/promises")
@@ -35,15 +34,20 @@ function App() {
       .then((data) => setIssues(data))
       .catch((err) => console.error("failed to fetch issues", err));
 
-    // poll the latest brain report every 5s so the terminal box stays alive
-    const fetchLatestReport = () => {
+    // poll the brain's latest report + recent observations every 5s
+    const refreshLive = () => {
       fetch("http://localhost:3001/api/reports?limit=1")
         .then((res) => res.json())
         .then((data) => setLatestReport(data[0] ?? null))
         .catch((err) => console.error("failed to fetch reports", err));
+
+      fetch("http://localhost:3001/api/observations")
+        .then((res) => res.json())
+        .then((data) => setObservations(data))
+        .catch((err) => console.error("failed to fetch observations", err));
     };
-    fetchLatestReport();
-    const id = setInterval(fetchLatestReport, 5000);
+    refreshLive();
+    const id = setInterval(refreshLive, 5000);
     return () => clearInterval(id);
   }, []);
 
@@ -133,9 +137,11 @@ function App() {
       {/* LEFT PANEL */}
       <RealDataBox
         className="h-full w-64 p-4 shrink-0"
-        realDataDiscord={MOCK_DISCORD_DATA}
+        realDataDiscord={observations
+          .filter(o => o.source === "discord" && o.type === "main_chat")
+          .map(o => o.payload)}
         realDataPromises={promises}
-        realDataObservation={MOCK_OBSERVATIONS}
+        realDataObservation={observations.filter(o => o.source !== "discord")}
         onDeletePromise={handleDeletePromise}
         onOpenAddPromise={() => setIsPromiseModalOpen(true)}
       />

@@ -1,6 +1,7 @@
 import CONFIG from "../config.js";
 import { getNewMessages, getForumPosts } from "../integrations/discordBot.js";
 import { getNewHerokuLogs } from "../integrations/herokuData.js";
+import { pushObservation } from "../state.js";
 
 const filter = "heroku/web.1";
 
@@ -29,6 +30,12 @@ export async function drainObservations(): Promise<string> {
   const newDevChat = CONFIG.dev_chat
     ? await safe("dev_chat", () => getNewMessages(CONFIG.dev_chat), [])
     : [];
+
+  // mirror everything to the state buffer so the frontend feed has real data
+  for (const line of newLogs) pushObservation({ source: "heroku", type: "log", payload: { line }, timestamp: Date.now() });
+  for (const m of newChat as any[]) pushObservation({ source: "discord", type: "main_chat", payload: m, timestamp: Date.now() });
+  for (const m of newDevChat as any[]) pushObservation({ source: "discord", type: "dev_chat", payload: m, timestamp: Date.now() });
+  for (const post of newBugReports as any[]) pushObservation({ source: "discord", type: "bug_report", payload: post, timestamp: Date.now() });
 
   return `
 You are receiving the latest Cortex observation batch.
