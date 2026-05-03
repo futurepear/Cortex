@@ -1,10 +1,10 @@
+import "./env.js";  // must be first so process.env is loaded before anything else reads it
 import express from 'express';
 import { reconcileBatch } from "./reconciler.js";
 import { state, drainObservations } from "./state.js";
 import { startObservationSource } from "./observations.js";
 import { loadPromises } from "./promises.js";
 import promisesRouter from "./routes/promises.js";
-import agentRouter from "./routes/agent.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
@@ -57,7 +57,6 @@ app.get('/', (_req, res) => {
 });
 
 app.use(promisesRouter);
-app.use(agentRouter);
 
 app.listen(port, () => {
   console.log(`Cortex backend listening on http://localhost:${port}`);
