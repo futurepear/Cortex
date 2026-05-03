@@ -67,4 +67,20 @@ export class ToolRegistry {
             result,
         };
     }
+
+    extractToolCalls(llmOutput: any): LLMToolCall[] {
+        
+
+        return [];
+    }
+
+    async runFromLLMOutput(llmOutput: any) {
+        const calls = this.extractToolCalls(llmOutput);
+
+        if (calls.length === 0) {
+            return [];
+        }
+
+        return Promise.all(calls.map(call => this.run(call)));
+    }
 }
