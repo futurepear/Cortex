@@ -1,7 +1,8 @@
 import express from 'express';
-import { PROMISES, OBSERVATIONS } from "./mock.js";
+import { PROMISES } from "./mock.js";
 import { reconcileBatch } from "./reconciler.js";
-import { state, addObservation, drainObservations } from "./state.js";
+import { state, drainObservations } from "./state.js";
+import { startObservationSource } from "./observations.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
@@ -9,48 +10,36 @@ const reconcileIntervalMs = Number(process.env.RECONCILE_INTERVAL_MS) || 20_000;
 
 app.use(express.json());
 
-// fake "stream source" for now: every 2s, push one mock observation onto the queue
-let i = 0;
-function startMockObservationSource() {
-  setInterval(() => {
-    const obs = OBSERVATIONS[i % OBSERVATIONS.length];
-    i++;
-    addObservation(obs);
-    console.log("Observation queued:", obs);
-  }, 2000);
-}
-
-// Reconcile loop: drains queue + analyzes batch, then schedules next run.
-// Self-rescheduling (not setInterval) so a long reconcile can't overlap itself.
-let isReconciling = false;
-async function reconcileTick() {
-  if (isReconciling) {
-    console.log("Reconcile already in progress, skipping tick.");
-    scheduleNextReconcile();
+// reconcile loop. self-rescheduling so a slow batch can't overlap itself
+let reconciling = false;
+async function tick() {
+  if (reconciling) {
+    console.log("still reconciling, skipping tick");
+    schedule();
     return;
   }
 
-  isReconciling = true;
+  reconciling = true;
   try {
     const batch = drainObservations();
     await reconcileBatch(batch, state.promises);
   } catch (err) {
-    console.error("Reconcile error:", (err as any).message);
+    console.error("reconcile error:", (err as any).message);
   } finally {
-    isReconciling = false;
-    scheduleNextReconcile();
+    reconciling = false;
+    schedule();
   }
 }
 
-function scheduleNextReconcile() {
-  setTimeout(reconcileTick, reconcileIntervalMs);
+function schedule() {
+  setTimeout(tick, reconcileIntervalMs);
 }
 
 export function main() {
-  console.log(`Cortex starting... (reconcile interval: ${reconcileIntervalMs}ms)`);
+  console.log(`cortex starting (reconcile every ${reconcileIntervalMs}ms)`);
   state.promises = PROMISES;
-  startMockObservationSource();
-  scheduleNextReconcile();
+  startObservationSource();
+  schedule();
 }
 
 

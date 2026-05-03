@@ -2,8 +2,8 @@ import { Observation, PromiseItem, Drift } from "./models.js";
 
 export const state = {
   promises: [] as PromiseItem[],
-  observations: [] as Observation[],   // historical log (every observation we've ever seen)
-  observationQueue: [] as Observation[], // pending observations awaiting next reconcile
+  observations: [] as Observation[],   // full history
+  observationQueue: [] as Observation[], // waiting on next reconcile
   drifts: [] as Drift[],
 };
 
