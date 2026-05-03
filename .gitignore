@@ -5,3 +5,4 @@ dist
 *.log
 google_token.json
 .DS_Store
+backend/store
