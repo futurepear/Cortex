@@ -25,6 +25,7 @@
     "zod": "^4.4.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/node": "^24.0.0",
     "express": "^5.1.0",

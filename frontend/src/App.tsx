@@ -1,19 +1,31 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Box from "./components/Box";
 import RealDataBox from "./components/RealDataBox";
 import Item from "./components/items/ItemTemplate";
 import { MOCK_DISCORD_DATA } from "../mockdata/mockdata";
 import {MOCK_OBSERVATIONS} from "../mockdata/mockdata3";
 
+type ContextDoc = {
+  id: string;
+  title: string;
+  content: string;
+};
+
 function App() {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
   const [promises, setPromises] = useState<any[]>([]);
+  const [contextDocs, setContextDocs] = useState<ContextDoc[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/promises")
+    fetch("http://localhost:3001/api/promises")
       .then((res) => res.json())
       .then((data) => setPromises(data))
       .catch((err) => console.error("failed to fetch promises", err));
+
+    fetch("http://localhost:3001/api/context")
+      .then((res) => res.json())
+      .then((data) => setContextDocs(data))
+      .catch((err) => console.error("failed to fetch context", err));
   }, []);
 
 
@@ -57,7 +69,27 @@ function App() {
               onDoubleClick={() => setExpandedIndex(2)}
               className={getBoxClass(2)}
             >
-              <Item />
+              <div className="flex h-full flex-col gap-2 overflow-auto">
+                {contextDocs.length > 0 ? (
+                  contextDocs.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="rounded-sm border border-line-2 bg-bg-2/50 p-3"
+                    >
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-cy">
+                        {doc.title}
+                      </div>
+                      <div className="mt-2 text-[12px] leading-snug text-fg-muted whitespace-pre-wrap">
+                        {doc.content.slice(0, 180)}{doc.content.length > 180 ? "..." : ""}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-sm border border-line-2 bg-bg-2/50 p-3 font-mono text-[10px] uppercase tracking-widest text-fg-faint">
+                    No context loaded yet
+                  </div>
+                )}
+              </div>
             </Box>
         </div>
 
