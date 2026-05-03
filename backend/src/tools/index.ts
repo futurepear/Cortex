@@ -77,16 +77,25 @@ tools.register({
 
 tools.register({
   name: "dispatchCodingAgent",
-  description: "send a coding task to a claude code agent that can read and edit the codebase. destructive, only use when drift looks like a code bug worth fixing",
+  description: "send a coding task to a claude code agent. it will branch off production, edit code, push, open a PR, and merge it. destructive — only use when drift looks like a real code bug",
   parameters: {
     type: "object",
     properties: {
-      task: { type: "string", description: "what the agent should do, e.g. 'fix the null deref in src/foo.ts that's spamming heroku 5xx errors'" },
+      task: { type: "string", description: "describe the bug and the fix, e.g. 'fix the null deref in src/foo.ts that's spamming heroku 5xx errors'" },
     },
     required: ["task"],
   },
   execute: async ({ task }) => {
-    const result = await dispatchAgent({ task, workdir: process.env.CODEBASE_PATH! });
+    const wrapped = `${task}
+
+Workflow (do this exactly, do NOT merge):
+1. cd into the repo, run "git fetch origin && git checkout production && git pull origin production"
+2. create a branch: "git checkout -b fix/<short-slug>"
+3. make the code change
+4. commit and push: "git add . && git commit -m '<short message>' && git push -u origin <branch>"
+5. open a PR: "gh pr create --base production --fill"
+Report back the branch name and PR url. Do not merge.`;
+    const result = await dispatchAgent({ task: wrapped, workdir: process.env.CODEBASE_PATH! });
     return { text: result.text, toolUseCount: result.toolUses.length };
   },
 });
