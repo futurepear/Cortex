@@ -4,7 +4,9 @@ import { reconcileBatch } from "./reconciler.js";
 import { state } from "./state.js";
 import { drainObservations } from "./prompts/observations.js";
 import { loadPromises } from "./promises.js";
+import { loadContext } from "./context.js";
 import promisesRouter from "./routes/promises.js";
+import contextRouter from "./routes/context.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
@@ -40,7 +42,8 @@ function schedule() {
 export function main() {
   console.log(`cortex starting (reconcile every ${reconcileIntervalMs}ms)`);
   state.promises = loadPromises();
-  console.log(`loaded ${state.promises.length} promise(s)`);
+  state.context = loadContext();
+  console.log(`loaded ${state.promises.length} promise(s), ${state.context.length} context doc(s)`);
   schedule();
 }
 
@@ -56,6 +59,7 @@ app.get('/', (_req, res) => {
 });
 
 app.use(promisesRouter);
+app.use(contextRouter);
 
 app.listen(port, () => {
   console.log(`Cortex backend listening on http://localhost:${port}`);

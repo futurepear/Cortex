@@ -5,5 +5,6 @@ dist
 *.log
 google_token.json
 promises.json
+context.json
 .DS_Store
 backend/store

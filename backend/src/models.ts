@@ -5,7 +5,7 @@ export interface Observation {
   timestamp?: number;
 }
 
-export interface KnowledgeItem {
+export interface ContextItem {
   id: string;
   title: string;
   content: string;
