@@ -1,0 +1,9 @@
+Cortex Investigation Report:
+Status: Drift Detected.
+Observation: GA4 reports 0 active users for the last week, which indicates a complete loss of tracking or a system failure, violating the promise regarding DAU.
+Heroku logs appear to show the application processing updates (200/200) and websocket logins, suggesting the application core might be functional but telemetry/analytics are failing.
+
+Action Plan:
+1. Verify if the analytics instrumentation is broken or if there is a legitimate total drop in traffic.
+2. Investigate GA4 configuration.
+3. No destructive action taken yet. Pending verification of analytics pipeline health.

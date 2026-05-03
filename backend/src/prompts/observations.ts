@@ -4,27 +4,19 @@ import { getNewHerokuLogs } from "../integrations/herokuData.js";
 
 const filter = "heroku/web.1";
 
-let getLogs = getNewHerokuLogs(filter);
+// the heroku tail starts here at module load and buffers continuously,
+// each call below drains and clears the buffer
+const getLogs = getNewHerokuLogs(filter);
 
-function pretty(value: unknown) {
-    return JSON.stringify(value, null, 2);
+function pretty(v: unknown) {
+  return JSON.stringify(v, null, 2);
 }
 
 export async function drainObservations(): Promise<string> {
+  const newLogs = getLogs();
+  const newDiscordMessages = await getNewMessages(CONFIG.main_chat);
 
-    let newLogs = getLogs();
-    let newDiscordMessages = await getNewMessages(CONFIG.main_chat);
-
-    //papertrail      - new messages
-    //ga4             - TOOL ONLY
-    //discord         - new messages
-    //github issue    - TOOL
-    //commit history  - TOOL ONLY 
-    //repo info       - TOOL ONLY
-    //docs            - RAG/TOOL ONLY - some goes in system prompt
-    //action logs     - TOOL ONLY
-
-    return `
+  return `
 You are receiving the latest Cortex observation batch.
 
 PAPERTRAIL / SERVER NEW LOGS

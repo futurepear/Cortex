@@ -6,7 +6,10 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 // it just loads the saved token. add scopes here when other google APIs
 // need to be added (sheets, drive, etc)
 const TOKEN_PATH = "google_token.json";
-const SCOPES = ["https://www.googleapis.com/auth/documents.readonly"];
+const SCOPES = [
+  "https://www.googleapis.com/auth/documents.readonly",
+  "https://www.googleapis.com/auth/analytics.readonly",
+];
 
 let cached: any = null;
 

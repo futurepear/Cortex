@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { ToolRegistry } from "../tools/registry.js";
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite-preview";
 
 // run gemini with the tool registry. it can call tools, see results, call more,
 // and eventually emit final text. we just give it the prompt and let it cook.
@@ -25,25 +25,26 @@ export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRo
       config: { tools },
     });
 
-    const calls = resp.functionCalls ?? [];
+    // grab the raw parts from the model. we have to echo these back as-is
+    // so gemini's thought_signature stays attached to each function call
+    const modelParts = resp.candidates?.[0]?.content?.parts ?? [];
+    const functionCallParts = modelParts.filter((p: any) => p.functionCall);
 
-    // no more tools to call, gemini is done — return its text
-    if (calls.length === 0) {
+    // no tools to call, gemini is done — return its text
+    if (functionCallParts.length === 0) {
       return resp.text ?? "";
     }
 
-    // record what gemini asked for
-    messages.push({
-      role: "model",
-      parts: calls.map((c: any) => ({ functionCall: c })),
-    });
+    // echo gemini's whole turn back into the conversation (signature included)
+    messages.push({ role: "model", parts: modelParts });
 
     // run each tool, collect responses
     const responses = [];
-    for (const call of calls) {
+    for (const part of functionCallParts) {
+      const call = (part as any).functionCall;
       console.log(`[gemini] tool call: ${call.name}`, call.args);
       try {
-        const result = await registry.run(call.name!, call.args ?? {});
+        const result = await registry.run(call.name, call.args ?? {});
         responses.push({ functionResponse: { name: call.name, response: { result } } });
       } catch (err) {
         responses.push({ functionResponse: { name: call.name, response: { error: String(err) } } });

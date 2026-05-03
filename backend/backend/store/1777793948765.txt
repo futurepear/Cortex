@@ -1,0 +1,1 @@
+Drift detected: DAU has dropped to zero (GA4 reports 0 sessions/users). While Heroku logs show web.1 is active, there is no user activity being recorded. Need to verify if the app is accessible or if analytics tracking is broken.
