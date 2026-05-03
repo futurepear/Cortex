@@ -38,13 +38,13 @@ export default function RealDataBox({
               Promises
             </span>
             {onOpenAddPromise && (
-              <button
+              <div 
                 onClick={onOpenAddPromise}
                 aria-label="Add promise"
-                className="grid h-6 w-6 place-items-center rounded-full border border-cy/60 text-cy transition-colors hover:bg-cy hover:text-bg-2"
+                className="text-[10px] h-5 w-20 rounded-full border border-cy/60 text-cy flex align-items-center justify-center"
               >
-                +
-              </button>
+                Add Promise
+              </div>
             )}
           </div>
           <div className="h-[1px] w-full bg-line-2 mt-2" />

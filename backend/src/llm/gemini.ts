@@ -3,8 +3,8 @@ import { ToolRegistry } from "../tools/registry.js";
 
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite-preview";
 
-// run gemini with the tool registry. it can call tools, see results, call more,
-// and eventually emit final text. we just give it the prompt and let it cook.
+// run gemini with tools, streaming text to stdout as it arrives so we can
+// watch the thinking live
 export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRounds = 6): Promise<string> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -19,30 +19,43 @@ export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRo
   const messages: any[] = [{ role: "user", parts: [{ text: prompt }] }];
 
   for (let round = 0; round < maxRounds; round++) {
-    const resp = await ai.models.generateContent({
+    process.stdout.write(`\n[gemini round ${round + 1}] `);
+
+    // stream and collect parts as they arrive
+    const stream = await ai.models.generateContentStream({
       model: MODEL,
       contents: messages,
       config: { tools },
     });
 
-    // grab the raw parts from the model. we have to echo these back as-is
-    // so gemini's thought_signature stays attached to each function call
-    const modelParts = resp.candidates?.[0]?.content?.parts ?? [];
+    const modelParts: any[] = [];
+    for await (const chunk of stream) {
+      const parts = chunk.candidates?.[0]?.content?.parts ?? [];
+      for (const part of parts) {
+        modelParts.push(part);
+        if ((part as any).text) process.stdout.write((part as any).text);
+        if ((part as any).functionCall) {
+          const fc = (part as any).functionCall;
+          process.stdout.write(`\n[tool call] ${fc.name} ${JSON.stringify(fc.args ?? {})}\n`);
+        }
+      }
+    }
+    process.stdout.write("\n");
+
     const functionCallParts = modelParts.filter((p: any) => p.functionCall);
 
-    // no tools to call, gemini is done — return its text
+    // no tools to call → gemini is done, return its text
     if (functionCallParts.length === 0) {
-      return resp.text ?? "";
+      return modelParts.filter((p: any) => p.text).map((p: any) => p.text).join("");
     }
 
-    // echo gemini's whole turn back into the conversation (signature included)
+    // echo gemini's full turn so thought_signature stays attached
     messages.push({ role: "model", parts: modelParts });
 
-    // run each tool, collect responses
+    // run each tool, feed results back
     const responses = [];
     for (const part of functionCallParts) {
       const call = (part as any).functionCall;
-      console.log(`[gemini] tool call: ${call.name}`, call.args);
       try {
         const result = await registry.run(call.name, call.args ?? {});
         responses.push({ functionResponse: { name: call.name, response: { result } } });
@@ -50,8 +63,6 @@ export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRo
         responses.push({ functionResponse: { name: call.name, response: { error: String(err) } } });
       }
     }
-
-    // feed results back in
     messages.push({ role: "user", parts: responses });
   }
 

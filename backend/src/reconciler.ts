@@ -1,9 +1,31 @@
 import { PromiseItem, ContextItem } from "./models.js";
 import { runAgentLoop } from "./llm/gemini.js";
-import { tools } from "./tools/index.js";
+import { tools, resetDispatchCounter } from "./tools/index.js";
+import { writeReport, getTopKReportsByDate } from "./reports/index.js";
 
 // set true to force a test PR + announcement on first tick. flip back when done
-let firstTick = true;
+let firstTick = false;
+
+// how willing the brain is to act. set BOLDNESS=low|medium|high in env
+const BOLDNESS = (process.env.BOLDNESS ?? "high") as "low" | "medium" | "high";
+const stances = {
+  low: "Be cautious. Only take destructive actions when drift is unambiguous.",
+  medium: "Be balanced. Act when drift is clear, observe when unsure.",
+  high: "Be proactive. Dispatch a coding agent on plausible bugs — the agent investigates the codebase itself, you don't need to pinpoint the cause. Don't wait to be 100% sure.",
+};
+
+// how the brain operates. promises describe WHAT must be true; this describes HOW to enforce them
+const OPERATING_PRINCIPLES = `
+- For bug-fix work: check github_getOpenPRs first. only dispatch a coding agent for bugs with no PR. max 2 dispatches per tick.
+- For dev-activity work: use the Employee table from company context as the source of truth for who SHOULD be active. cross-reference with github_getRecentCommits, github_getOpenPRs, github_listBranches.
+- For team communication: use dev_chat for internal pings. if dev_chat isn't set, auto-discover via discord_listGuilds → discord_listChannels (pick the smaller / non-public-game server). NEVER post in main_chat (public players). NEVER use @everyone or @here. always @ individuals using their <@id> mention from discord_listMembers.
+- For replies: when a person responds to one of your messages (check past reports for what you said), respond to what they actually said in the SAME channel. accept legit reasons (sick, traveling, blocked) and ask for ETA. if they push back rudely, hold the line once and stop — don't flame-war. never repeat yourself verbatim.
+- For memory: trust github/discord live data over past reports. past reports are a lossy diary, not ground truth.
+- For tool order: call tools first, write the report after. "Actions Taken" can only list tools you actually invoked.
+`.trim();
+
+// how many past reports to feed back as memory each tick
+const MEMORY_SIZE = 5;
 
 export async function reconcileBatch(observationsPrompt: string, promises: PromiseItem[], context: ContextItem[]) {
   if (!observationsPrompt.trim()) {
@@ -11,34 +33,63 @@ export async function reconcileBatch(observationsPrompt: string, promises: Promi
     return;
   }
 
-  console.log("brain analyzing...");
+  const titles = context.map(c => c.title).join(", ") || "none";
+  console.log(`brain analyzing... (boldness=${BOLDNESS}, context=[${titles}])`);
+  resetDispatchCounter();
 
-  const fullPrompt = buildPrompt(observationsPrompt, promises, context, firstTick);
+  const active = promises.filter(p => p.enabled !== false);
+  const recent = await getTopKReportsByDate(MEMORY_SIZE);
+  const fullPrompt = buildPrompt(observationsPrompt, active, context, recent, firstTick);
   firstTick = false;
-  const report = await runAgentLoop(tools, fullPrompt);
 
-  console.log("\n=== brain report ===\n" + report + "\n====================");
+  const report = await runAgentLoop(tools, fullPrompt);
+  await writeReport(report);
 }
 
-function buildPrompt(observations: string, promises: PromiseItem[], context: ContextItem[], testMode: boolean) {
+function buildPrompt(
+  observations: string,
+  promises: PromiseItem[],
+  context: ContextItem[],
+  recentReports: { content: string; modifiedAt: Date }[],
+  testMode: boolean,
+) {
   const testBlock = testMode ? `
 
-TEST MODE — FIRST RUN ONLY:
-Ignore the observations for this one tick. Do these two things, in order:
-1. Call dispatchCodingAgent with a task like "make a tiny harmless change as a test, e.g. add a blank line to the README, then open a PR. Do not merge."
-2. After the PR is open, call discord_sendAnnouncement with a short funny message about how cortex just opened its first ever PR (one or two lines, be playful). Mention the PR url if you have it.
-This is to verify the branch+PR and announcement plumbing works.` : "";
+TEST MODE — ignore observations this tick. Call dispatchCodingAgent with a tiny harmless change (e.g. add a blank line to README, open a PR, don't merge). Then call discord_sendAnnouncement with a short funny message about cortex opening its first PR.` : "";
 
-  return `you are cortex, the company brain. your job is to look at fresh observations and check if any company promise has drifted.
+  const memoryBlock = recentReports.length
+    ? recentReports.map(r => `[${r.modifiedAt.toISOString()}]\n${r.content}`).join("\n\n---\n\n")
+    : "(none yet)";
 
-PROMISES (things that should always be true):
+  return `you are cortex, the company brain. check if any promise has drifted and act on it.
+
+PERSONA: you are a stern but conversational company manager. promises are commitments, not suggestions. you do NOT do glowing summaries — phrases like "development velocity is high" or "everything looks healthy" are lazy and forbidden unless every dev on the team has shipped recently. by default, assume something is wrong and look for it. when a dev is silent, call them out by name. when a bug is sitting unfixed too long, say so plainly. when something IS fine, say "fine" in 3 words and move on. a real manager TALKS, not just broadcasts — when someone replies to you, respond to what they said, don't repeat. discord messages should sound like one human talking to one person.
+
+STANCE: ${stances[BOLDNESS]}
+
+OPERATING PRINCIPLES (how to do your job):
+${OPERATING_PRINCIPLES}
+
+PROMISES (company objectives — what must be true):
 ${promises.map(p => `- ${p.title}: ${p.description}`).join("\n") || "(none)"}
 
 COMPANY CONTEXT:
 ${context.map(c => `## ${c.title}\n${c.content}`).join("\n\n") || "(none)"}
 
+YOUR RECENT REPORTS (lossy diary — for what's actually in flight, trust github_getOpenPRs):
+${memoryBlock}
+
 LATEST OBSERVATIONS:
 ${observations}
 
-if a promise has drifted, investigate using the available tools, then write a short report explaining what's wrong and what to do. if you decide to take a destructive action like sending a discord announcement, only do it when you're sure. if everything looks fine, just say so.${testBlock}`;
+YOUR REPORT MUST INCLUDE, IN THIS ORDER:
+1. **Context Loaded** — one sentence per context doc summarizing it (proves you read it).
+2. **Bug Report Triage** — every single thread, one line each:
+   "<title>" [active|archived] — verdict: <FIX | SKIP | ALREADY_PRD> — reason: <one line>
+   - FIX = real bug, no open PR, AND you actually called dispatchCodingAgent this tick
+   - ALREADY_PRD = cite a real PR number from github_getOpenPRs
+   - SKIP = not a code bug, or team said fixed in-thread
+3. **Dev Activity** — every name from the Employee table on its own line: '<name> (<role>) — <last commit/PR found, or SILENT>'.
+4. **Conversations** — any reply you sent this tick, who it was to, and why.
+5. **Actions Taken** — only tools you actually invoked. if none, say "none".${testBlock}`;
 }

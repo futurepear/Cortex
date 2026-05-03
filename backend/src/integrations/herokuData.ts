@@ -1,11 +1,3 @@
-
-// ----------------------
-// Heroku logs / Papertrail path
-// ----------------------
-// If Papertrail is attached through Heroku, logs are drained there.
-// This fetches recent Heroku logs using Heroku's log session API.
-// Papertrail itself is mainly a log drain/search UI/add-on.
-
 import { AIContextBlock } from "./dataTypes.js";
 
 export async function getRawHerokuRecentLogs(): Promise<AIContextBlock> {
@@ -145,8 +137,7 @@ export async function watchHerokuLogs(
 }
 
 
-//how to use ts: see the test file TYPE SHI
-
+// returns a function that drains buffered new lines since the last call
 export function getNewHerokuLogs(filter: string){
     let queue: string[] = [];
     // fire and forget. if heroku creds are bad we just get no logs, don't crash the app

@@ -1,8 +1,0 @@
-Cortex Investigation Report - 2026-05-03:
-- Observations: 
-    1. Heroku logs show consistent 200 statuses for web.1, indicating the app is up and running.
-    2. GA4 core stats are reporting 0 for all metrics (activeUsers, sessions, etc.). 
-- Drift Assessment:
-    - App Stability: No drift detected. The app is responding with 200.
-    - DAU: Potential drift detected. The reported DAU is 0, which constitutes a complete drop, violating the "DAU shouldn't drop more than 30%" promise.
-- Conclusion: It is highly likely that the GA4 tracking instrumentation is malfunctioning or there is an issue with the data pipeline, given that the logs show active API sessions and web traffic. I will investigate further if the statistics do not recover. No destructive actions taken at this time.
