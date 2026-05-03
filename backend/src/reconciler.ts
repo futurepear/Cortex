@@ -1,5 +1,5 @@
 import { PromiseItem, ContextItem } from "./models.js";
-import { runAgentLoop } from "./llm/gemini.js";
+import { runAgentLoop } from "./llm/index.js";
 import { tools, resetDispatchCounter } from "./tools/index.js";
 import { writeReport, getTopKReportsByDate } from "./reports/index.js";
 
@@ -42,7 +42,19 @@ export async function reconcileBatch(observationsPrompt: string, promises: Promi
   const fullPrompt = buildPrompt(observationsPrompt, active, context, recent, firstTick);
   firstTick = false;
 
-  const report = await runAgentLoop(tools, fullPrompt);
+  const { text, actualCalls } = await runAgentLoop(tools, fullPrompt);
+
+  // gemini sometimes hallucinates tool names in its "Actions Taken" section —
+  // override with what actually happened so future ticks don't trust the lie
+  const truth = actualCalls.length
+    ? actualCalls.map(c => `- ${c.name} ${JSON.stringify(c.args)}`).join("\n")
+    : "- none";
+  const report = `${text}\n\n---\nGROUND TRUTH (actual tool invocations this tick):\n${truth}`;
+
+  if (actualCalls.length === 0) {
+    console.log("[warn] zero tool calls this tick — brain may be hallucinating");
+  }
+
   await writeReport(report);
 }
 
@@ -86,9 +98,9 @@ YOUR REPORT MUST INCLUDE, IN THIS ORDER:
 1. **Context Loaded** — one sentence per context doc summarizing it (proves you read it).
 2. **Bug Report Triage** — every single thread, one line each:
    "<title>" [active|archived] — verdict: <FIX | SKIP | ALREADY_PRD> — reason: <one line>
-   - FIX = real bug, no open PR, AND you actually called dispatchCodingAgent this tick
-   - ALREADY_PRD = cite a real PR number from github_getOpenPRs
-   - SKIP = not a code bug, or team said fixed in-thread
+   - FIX = real bug AND no PR matches it in the LIVE github_getOpenPRs result this tick → you MUST call dispatchCodingAgent now. past reports claiming "agent already dispatched" do NOT count (those dispatches may have failed silently). only an actual open PR proves it's in flight.
+   - ALREADY_PRD = cite a real PR number visible in this tick's github_getOpenPRs output
+   - SKIP = not a code bug (cheater complaints, balance, hardware), or team explicitly said fixed in-thread
 3. **Dev Activity** — every name from the Employee table on its own line: '<name> (<role>) — <last commit/PR found, or SILENT>'.
 4. **Conversations** — any reply you sent this tick, who it was to, and why.
 5. **Actions Taken** — only tools you actually invoked. if none, say "none".${testBlock}`;

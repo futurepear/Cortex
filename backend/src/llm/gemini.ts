@@ -3,9 +3,16 @@ import { ToolRegistry } from "../tools/registry.js";
 
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite-preview";
 
+export type AgentResult = {
+  text: string;
+  // every actual tool invocation we observed during the loop. trust this over
+  // whatever gemini wrote in its "Actions Taken" section
+  actualCalls: { name: string; args: any }[];
+};
+
 // run gemini with tools, streaming text to stdout as it arrives so we can
-// watch the thinking live
-export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRounds = 6): Promise<string> {
+// watch the thinking live. returns the final text + the real tool calls observed
+export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRounds = 6): Promise<AgentResult> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
   const tools = [{
@@ -17,11 +24,11 @@ export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRo
   }];
 
   const messages: any[] = [{ role: "user", parts: [{ text: prompt }] }];
+  const actualCalls: { name: string; args: any }[] = [];
 
   for (let round = 0; round < maxRounds; round++) {
     process.stdout.write(`\n[gemini round ${round + 1}] `);
 
-    // stream and collect parts as they arrive
     const stream = await ai.models.generateContentStream({
       model: MODEL,
       contents: messages,
@@ -44,18 +51,20 @@ export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRo
 
     const functionCallParts = modelParts.filter((p: any) => p.functionCall);
 
-    // no tools to call → gemini is done, return its text
+    // no tools to call → gemini is done, return its text + the real call log
     if (functionCallParts.length === 0) {
-      return modelParts.filter((p: any) => p.text).map((p: any) => p.text).join("");
+      const text = modelParts.filter((p: any) => p.text).map((p: any) => p.text).join("");
+      return { text, actualCalls };
     }
 
-    // echo gemini's full turn so thought_signature stays attached
+    // echo gemini's full turn back so thought_signature stays attached
     messages.push({ role: "model", parts: modelParts });
 
-    // run each tool, feed results back
+    // run each tool, record what really happened
     const responses = [];
     for (const part of functionCallParts) {
       const call = (part as any).functionCall;
+      actualCalls.push({ name: call.name, args: call.args ?? {} });
       try {
         const result = await registry.run(call.name, call.args ?? {});
         responses.push({ functionResponse: { name: call.name, response: { result } } });
@@ -66,5 +75,5 @@ export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRo
     messages.push({ role: "user", parts: responses });
   }
 
-  return "agent hit max rounds without finishing";
+  return { text: "agent hit max rounds without finishing", actualCalls };
 }
