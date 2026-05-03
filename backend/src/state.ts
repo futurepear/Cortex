@@ -6,11 +6,15 @@ export const state = {
   observations: [] as Observation[],   // full history
   observationQueue: [] as Observation[], // waiting on next reconcile
   drifts: [] as Drift[],
+  paused: false,                         // true while the brain is reconciling, drops new observations
 };
 
-export function addObservation(o: Observation) {
+// returns false if the brain is busy and we dropped this one
+export function addObservation(o: Observation): boolean {
+  if (state.paused) return false;
   state.observations.push(o);
   state.observationQueue.push(o);
+  return true;
 }
 
 export function drainObservations(): Observation[] {

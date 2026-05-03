@@ -40,8 +40,8 @@ function startMock() {
   setInterval(() => {
     const obs = OBSERVATIONS[i % OBSERVATIONS.length];
     i++;
-    addObservation(obs);
-    console.log("[obs:mock] queued", obs);
+    if (addObservation(obs)) console.log("[obs:mock] queued", obs);
+    else console.log("[obs:mock] dropped (brain busy)");
   }, 2_000);
 }
 

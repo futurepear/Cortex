@@ -12,23 +12,23 @@ const reconcileIntervalMs = Number(process.env.RECONCILE_INTERVAL_MS) || 20_000;
 
 app.use(express.json());
 
-// reconcile loop. self-rescheduling so a slow batch can't overlap itself
-let reconciling = false;
+// reconcile loop. while paused is true, addObservation is a no-op so
+// nothing piles up while we're thinking
 async function tick() {
-  if (reconciling) {
+  if (state.paused) {
     console.log("still reconciling, skipping tick");
     schedule();
     return;
   }
 
-  reconciling = true;
+  state.paused = true;
   try {
     const batch = drainObservations();
     await reconcileBatch(batch, state.promises);
   } catch (err) {
     console.error("reconcile error:", (err as any).message);
   } finally {
-    reconciling = false;
+    state.paused = false;
     schedule();
   }
 }
