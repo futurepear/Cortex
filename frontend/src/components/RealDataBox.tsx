@@ -1,13 +1,16 @@
 import React from "react";
 import type { DiscordMessage } from "../../../backend/src/integrations/discordBot";
-import DiscordItem from "./items/DiscordItem";
+import DiscordItem from "./items/DIscordItem";
 import type { PromiseItem } from "../../../backend/src/models";
 import PromiseItemC from "./items/PromiseItemC";
+import type { Observation } from "../../../backend/src/models";
+import ObserverationItem from "../components/items/ObservationItem"
 
 interface RealDataBoxProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   realDataDiscord?: DiscordMessage[];
   realDataPromises?: PromiseItem[];
+  realDataObservation?: Observation[];
 }
 
 export default function RealDataBox({
@@ -15,6 +18,7 @@ export default function RealDataBox({
   children,
   realDataDiscord,
   realDataPromises,
+  realDataObservation,
   ...props
 }: RealDataBoxProps) {
   return (
@@ -61,6 +65,13 @@ export default function RealDataBox({
 
           {/* SCROLL AREA */}
           <div className="min-h-0 overflow-y-auto w-full scrollbox">
+            {realDataObservation?.toReversed().map(msg=> (
+              <ObserverationItem 
+                key = {msg.source}
+                className="text-white"
+                observation={msg}
+              />
+            ))}
             {realDataDiscord?.toReversed().map(msg => (
               <DiscordItem
                 key={msg.id}

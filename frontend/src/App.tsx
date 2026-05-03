@@ -1,12 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Box from "./components/Box";
 import RealDataBox from "./components/RealDataBox";
 import Item from "./components/items/ItemTemplate";
 import { MOCK_DISCORD_DATA } from "../mockdata/mockdata";
-import {MOCK_PROMISES} from "../mockdata/mockdata2"
+import {MOCK_OBSERVATIONS} from "../mockdata/mockdata3";
 
 function App() {
   const [expandedIndex, setExpandedIndex] = useState<number>(0);
+  const [promises, setPromises] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/promises")
+      .then((res) => res.json())
+      .then((data) => setPromises(data))
+      .catch((err) => console.error("failed to fetch promises", err));
+  }, []);
+
 
   const getBoxClass = (index: number) =>
     `box-transition ${expandedIndex === index ? "box-expanded" : "box-shrunk"}`;
@@ -18,7 +27,8 @@ function App() {
       <RealDataBox
         className="h-full w-64 p-4 shrink-0"
         realDataDiscord={MOCK_DISCORD_DATA}
-        realDataPromises={MOCK_PROMISES}
+        realDataPromises={promises}
+        realDataObservation={MOCK_OBSERVATIONS}
       />
 
       {/* MAIN AREA */}
