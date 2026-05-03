@@ -1,12 +1,37 @@
+import React, { useState } from "react";
+import Box from "./components/Box";
+
 function App() {
+  const [expandedIndex, setExpandedIndex] = useState<number>(0);
+
+  // Helper to keep the JSX clean
+  const getBoxClass = (index: number) => 
+    `box-transition ${expandedIndex === index ? "box-expanded" : "box-shrunk"}`;
+
   return (
-    <main className="min-h-screen flex items-center justify-center bg-neutral-950 text-neutral-100">
-      <div className="text-center">
-        <h1 className="text-5xl font-semibold tracking-tight">Cortex</h1>
-        <p className="mt-3 text-neutral-400">The AI operating system for companies.</p>
+    <div className="h-screen w-full flex overflow-hidden">
+      <Box className="h-full w-64 p-4 shrink-0" />
+            
+      <div className="flex flex-1 flex-col min-w-0 pt-2 p-2 gap-2">
+        
+        {/* Create three boxes that expande on double click */}
+        <div className="flex h-1/2 w-full gap-2">
+          {[0, 1, 2].map((i) => (
+            <Box 
+              key={i}
+              onDoubleClick={() => setExpandedIndex(i)}
+              className={getBoxClass(i)}
+            />
+          ))}
+        </div>
+
+        <div className="flex h-1/2 w-[90%] self-center">
+          <Box className="w-full"/>
+        </div>
+
       </div>
-    </main>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
