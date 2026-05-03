@@ -3,4 +3,5 @@ dist
 .env
 .env.local
 *.log
+google_token.json
 .DS_Store
