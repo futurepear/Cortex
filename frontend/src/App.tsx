@@ -52,8 +52,9 @@ function App() {
               onDoubleClick={() => setExpandedIndex(0)}
               className={getBoxClass(0)}
               tag = "Analytics"
+              noPadding = {true}
             >
-
+              <iframe className="w-full h-full" src="https://analytics.google.com/analytics/web/#/a232920444p320859243/reports/intelligenthome?params=_u..nav%3Dmaui"></iframe>
             </Box>
 
             <Box
