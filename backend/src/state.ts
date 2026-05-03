@@ -1,15 +1,20 @@
 import { Observation, PromiseItem, Drift } from "./models.js";
 
 export const state = {
+  knowledge: [] as ""[],
   promises: [] as PromiseItem[],
-  observations: [] as Observation[],   // historical log (every observation we've ever seen)
-  observationQueue: [] as Observation[], // pending observations awaiting next reconcile
+  observations: [] as Observation[],   // full history
+  observationQueue: [] as Observation[], // waiting on next reconcile
   drifts: [] as Drift[],
+  paused: false,                         // true while the brain is reconciling, drops new observations
 };
 
-export function addObservation(o: Observation) {
+// returns false if the brain is busy and we dropped this one
+export function addObservation(o: Observation): boolean {
+  if (state.paused) return false;
   state.observations.push(o);
   state.observationQueue.push(o);
+  return true;
 }
 
 export function drainObservations(): Observation[] {

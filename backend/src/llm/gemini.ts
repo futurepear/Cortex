@@ -57,7 +57,7 @@ const ai = new GoogleGenAI({
 //   }
 // }
 
-export async function analyzeDriftWithLLM(observations: any[], promises: any[]) {
+export async function analyzeDriftWithLLM(observationsPrompt: string, promises: any[]) {
   // HARD-CODED MOCK RESPONSE (for testing purposes without actual LLM calls)
 
   const mockResponse = {

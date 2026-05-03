@@ -4,4 +4,6 @@ dist
 .env.local
 *.log
 google_token.json
+promises.json
 .DS_Store
+backend/store
