@@ -8,7 +8,7 @@ export interface Observation {
 export interface PromiseItem {
   id: string;
   title: string;
-  category: "slo" | "product" | "engineering" | "ops";
+  // category: "slo" | "product" | "engineering" | "ops"; // For now we are only going to have code fixing stuff, so we dont need this 
 }
 
 export interface Drift {

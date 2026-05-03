@@ -11,11 +11,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "@google/genai": "^1.51.0",
+    "express": "^5.1.0",
+    "mime": "^4.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
-    "@types/node": "^24.0.0",
+    "@types/node": "^24.12.2",
     "tsx": "^4.20.0",
     "typescript": "~5.7.2"
   }

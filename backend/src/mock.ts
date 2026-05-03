@@ -4,7 +4,7 @@ export const PROMISES: PromiseItem[] = [
   {
     id: "p1",
     title: "Players must always be > 0",
-    category: "slo",
+    // category: "slo",
   },
 ];
 
