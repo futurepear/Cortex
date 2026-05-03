@@ -1,0 +1,4 @@
+Cortex Drift Report:
+The DAU metric shows 0 active users for the current period, which suggests a failure in tracking or a complete drop-off.
+The Heroku logs appear healthy with no 5xx errors reported; the application seems to be running (200 responses).
+Action: I will continue monitoring to determine if this is a data pipeline/reporting outage or an actual loss of users. Currently, the system seems operational, but the observability data is incomplete.

@@ -1,74 +1,59 @@
 import { GoogleGenAI } from "@google/genai";
+import { ToolRegistry } from "../tools/registry.js";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite-preview";
 
-// export async function analyzeDriftWithLLM(observation: any, promises: any[]) {
+// run gemini with the tool registry. it can call tools, see results, call more,
+// and eventually emit final text. we just give it the prompt and let it cook.
+export async function runAgentLoop(registry: ToolRegistry, prompt: string, maxRounds = 6): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-//   const prompt = `
-// You are a system that detects drift between PROMISES and OBSERVATIONS.
+  const tools = [{
+    functionDeclarations: registry.list().map(t => ({
+      name: t.name,
+      description: t.description,
+      parameters: t.parameters as any,
+    })),
+  }];
 
-// PROMISES:
-// ${JSON.stringify(promises, null, 2)}
+  const messages: any[] = [{ role: "user", parts: [{ text: prompt }] }];
 
-// OBSERVATION:
-// ${JSON.stringify(observation, null, 2)}
+  for (let round = 0; round < maxRounds; round++) {
+    const resp = await ai.models.generateContent({
+      model: MODEL,
+      contents: messages,
+      config: { tools },
+    });
 
-// Return JSON ONLY:
-// {
-//   "drift": boolean,
-//   "severity": "low" | "medium" | "critical",
-//   "rootCause": string,
-//   "action": "rollback" | "notify" | "none",
-//   "reasoning": string
-// }
-// `;
+    // grab the raw parts from the model. we have to echo these back as-is
+    // so gemini's thought_signature stays attached to each function call
+    const modelParts = resp.candidates?.[0]?.content?.parts ?? [];
+    const functionCallParts = modelParts.filter((p: any) => p.functionCall);
 
-//   try {
-//     // 10-second timeout to prevent hanging
-//     const timeoutPromise = new Promise((_, reject) =>
-//       setTimeout(() => reject(new Error("LLM call timed out after 10s")), 10000)
-//     );
+    // no tools to call, gemini is done — return its text
+    if (functionCallParts.length === 0) {
+      return resp.text ?? "";
+    }
 
-//     const response = await Promise.race([
-//       ai.models.generateContent({
-//         model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
-//         contents: [
-//           {
-//             role: "user",
-//             parts: [{ text: prompt }],
-//           },
-//         ],
-//       }),
-//       timeoutPromise,
-//     ]);
-    
-    
+    // echo gemini's whole turn back into the conversation (signature included)
+    messages.push({ role: "model", parts: modelParts });
 
-//     const text = (response as any).text;
+    // run each tool, collect responses
+    const responses = [];
+    for (const part of functionCallParts) {
+      const call = (part as any).functionCall;
+      console.log(`[gemini] tool call: ${call.name}`, call.args);
+      try {
+        const result = await registry.run(call.name, call.args ?? {});
+        responses.push({ functionResponse: { name: call.name, response: { result } } });
+      } catch (err) {
+        responses.push({ functionResponse: { name: call.name, response: { error: String(err) } } });
+      }
+    }
 
-//     const result = JSON.parse(text || "{}");
-//     console.log("LLM drift analysis complete");
-//     return result;
-//   } catch (err) {
-//     console.error("LLM call failed:", (err as any).message);
-//     return { drift: false, action: "none", reasoning: `Error: ${(err as any).message}` };
-//   }
-// }
+    // feed results back in
+    messages.push({ role: "user", parts: responses });
+  }
 
-export async function analyzeDriftWithLLM(observationsPrompt: string, promises: any[]) {
-  // HARD-CODED MOCK RESPONSE (for testing purposes without actual LLM calls)
-
-  const mockResponse = {
-    drift: true,
-    severity: "critical",
-    rootCause: "API latency spike caused missing expected observation fields",
-    action: "rollback",
-    reasoning:
-      "The observation deviates significantly from the expected promise schema. Required fields 'status' and 'latency' are missing, indicating a likely upstream failure."
-  };
-
-  console.log("Using hardcoded LLM response (mock mode)");
-  return mockResponse;
+  return "agent hit max rounds without finishing";
 }

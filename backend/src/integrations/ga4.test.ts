@@ -1,9 +1,8 @@
 
 import "../env.js"
-import { init, getDAU, getWAU, getMAU, getCoreStats, getUsersByDay, getTopPages, getTopEvents, getTrafficSources, ranges, getMAUByMonthGraph } from "./index.js"
+import { getDAU, getWAU, getMAU, getCoreStats, getUsersByDay, getTopPages, getTopEvents, getTrafficSources, ranges, getMAUByMonthGraph } from "./index.js"
 
 async function main(){
-    await init();
 
 
     console.log("DAU:", await getDAU());

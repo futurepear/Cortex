@@ -1,0 +1,7 @@
+Cortex Audit Summary:
+1. App Uptime: The Heroku logs for web.1 show 200 OK statuses for all recent requests. The application appears to be running normally with no signs of 5xx errors or crashes.
+2. DAU: The GA4 core stats are reporting 0 active users for the last week. This is highly suspicious and indicates a potential issue with the GA4 tracking implementation, as the Heroku logs confirm traffic (CCU: 1).
+
+Conclusion: The app is technically up, but the DAU tracking has drifted to zero, likely due to a reporting or integration issue rather than a total loss of users.
+
+Action: Investigation needed into GA4 tracking status to confirm if it is a reporting error.

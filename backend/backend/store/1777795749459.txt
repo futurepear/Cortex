@@ -1,0 +1,11 @@
+### Drift Report: Data Inconsistency
+- **Promise Status**:
+    - **App Uptime**: Looks stable. Heroku logs show consistent 200 response signals and no obvious 5xx or crash patterns.
+    - **DAU**: The GA4 report is returning all zeros, which indicates a potential instrumentation failure or data integration issue, rather than a literal drop to zero users.
+- **Analysis**:
+    - While the application appears to be running (based on logs), the analytics data pipeline is not reporting any activity.
+    - A user (bredisrising) has requested a PR on Discord. Given the zeroed-out metrics, it is possible an deployment or configuration change disrupted data collection.
+- **Action Plan**:
+    - Investigate why GA4 is reporting zero sessions/active users.
+    - Validate that the analytics tracking code is still active on the latest build.
+    - Inform the engineering team that while the app is up, the analytics dashboard is currently down/reporting zero.

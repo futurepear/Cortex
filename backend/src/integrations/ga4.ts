@@ -1,25 +1,16 @@
-// ga4.t
 import { google, analyticsdata_v1beta } from "googleapis";
+import { getGoogleAuth } from "../google.js";
 
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
 const GA_PROPERTY_ID = process.env.GA_PROPERTY_ID!;
 
-// // export const REDIRECT_URI = "http://localhost:3000/callback";
-
-// // export const oauth2Client = new google.auth.OAuth2(
-// //   CLIENT_ID,
-// //   CLIENT_SECRET,
-// //   REDIRECT_URI
-// // );
-
-export let analytics: analyticsdata_v1beta.Analyticsdata | null = null;
-
-export function setAnalytics(oauth2Client: any){
-    analytics = google.analyticsdata({
-        version: "v1beta",
-        auth: oauth2Client,
-    });
+// lazy. first call triggers shared google oauth (browser if no token saved yet),
+// every call after returns the cached client
+let analytics: analyticsdata_v1beta.Analyticsdata | null = null;
+async function getAnalytics() {
+  if (analytics) return analytics;
+  const auth = await getGoogleAuth();
+  analytics = google.analyticsdata({ version: "v1beta", auth: auth as any });
+  return analytics;
 }
 
 export type DateRange = {
@@ -98,10 +89,8 @@ async function runReport({
   dateRange?: DateRange;
   limit?: number;
 }) {
-  if(!analytics){
-    return {metrics: []};
-  }
-  const response = await (analytics.properties as any).runReport({
+  const client = await getAnalytics();
+  const response = await (client.properties as any).runReport({
     property: `properties/${GA_PROPERTY_ID}`,
     requestBody: {
       dateRanges: [dateRange],

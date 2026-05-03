@@ -1,7 +1,7 @@
 import { google, docs_v1 } from "googleapis";
 import { getGoogleAuth } from "../google.js";
 
-// pull the plain text out of one body's content. paragraphs only,
+// pull plain text from a doc body. paragraphs only, tables/images skipped
 function extractText(content: docs_v1.Schema$StructuralElement[] | undefined): string {
   if (!content) return "";
   let out = "";

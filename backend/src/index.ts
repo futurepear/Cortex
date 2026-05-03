@@ -1,10 +1,11 @@
-import "./env.js";  // must be first so process.env is loaded before anything else reads it
+import "./env.js";   // first so process.env is loaded before any other module reads it
 import express from 'express';
 import { reconcileBatch } from "./reconciler.js";
 import { state } from "./state.js";
 import { drainObservations } from "./prompts/observations.js";
 import { loadPromises } from "./promises.js";
 import { loadContext } from "./context.js";
+import { startDiscordBot } from "./integrations/discordBot.js";
 import promisesRouter from "./routes/promises.js";
 import contextRouter from "./routes/context.js";
 
@@ -14,8 +15,7 @@ const reconcileIntervalMs = Number(process.env.RECONCILE_INTERVAL_MS) || 20_000;
 
 app.use(express.json());
 
-// reconcile loop. while paused is true, addObservation is a no-op so
-// nothing piles up while we're thinking
+// brain heartbeat. self-rescheduling so a slow tick can't overlap itself
 async function tick() {
   if (state.paused) {
     console.log("still reconciling, skipping tick");
@@ -25,8 +25,8 @@ async function tick() {
 
   state.paused = true;
   try {
-    const prompt = await drainObservations();
-    await reconcileBatch(prompt, state.promises);
+    const observations = await drainObservations();
+    await reconcileBatch(observations, state.promises, state.context);
   } catch (err) {
     console.error("reconcile error:", (err as any).message);
   } finally {
@@ -39,11 +39,17 @@ function schedule() {
   setTimeout(tick, reconcileIntervalMs);
 }
 
-export function main() {
+export async function main() {
   console.log(`cortex starting (reconcile every ${reconcileIntervalMs}ms)`);
   state.promises = loadPromises();
   state.context = loadContext();
   console.log(`loaded ${state.promises.length} promise(s), ${state.context.length} context doc(s)`);
+  try {
+    await startDiscordBot();
+    console.log("discord bot ready");
+  } catch (err) {
+    console.error("discord bot failed to start:", (err as Error).message);
+  }
   schedule();
 }
 

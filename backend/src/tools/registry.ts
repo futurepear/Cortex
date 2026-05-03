@@ -1,86 +1,26 @@
-type ToolFn<TArgs = any, TResult = any> = (args: TArgs) => Promise<TResult> | TResult;
-
-type ToolDef<TArgs = any, TResult = any> = {
-    name: string;
-    description?: string;
-    parameters?: object; // JSON schema for the LLM
-    execute: ToolFn<TArgs, TResult>;
-};
-
-type LLMToolCall = {
-    id?: string;
-    type?: "function";
-    function: {
-        name: string;
-        arguments: string;
-    };
+// a tool is something the LLM can call
+export type Tool = {
+  name: string;
+  description: string;
+  parameters: object;                          // json schema
+  execute: (args: any) => Promise<any> | any;
 };
 
 export class ToolRegistry {
-    private tools = new Map<string, ToolDef>();
+  private tools = new Map<string, Tool>();
 
-    register(tool: ToolDef) {
-        if (this.tools.has(tool.name)) {
-            throw new Error(`Tool already registered: ${tool.name}`);
-        }
+  register(t: Tool) {
+    this.tools.set(t.name, t);
+    return this;
+  }
 
-        this.tools.set(tool.name, tool);
-        return this;
-    }
+  list(): Tool[] {
+    return [...this.tools.values()];
+  }
 
-    getSchemas() {
-        return [...this.tools.values()].map(tool => ({
-            type: "function",
-            function: {
-                name: tool.name,
-                description: tool.description ?? "",
-                parameters: tool.parameters ?? {
-                    type: "object",
-                    properties: {},
-                    additionalProperties: false,
-                },
-            },
-        }));
-    }
-
-    async run(call: LLMToolCall) {
-        const name = call.function.name;
-        const tool = this.tools.get(name);
-
-        if (!tool) {
-            throw new Error(`Unknown tool: ${name}`);
-        }
-
-        let args: unknown;
-
-        try {
-            args = JSON.parse(call.function.arguments || "{}");
-        } catch {
-            throw new Error(`Invalid JSON arguments for tool: ${name}`);
-        }
-
-        const result = await tool.execute(args);
-
-        return {
-            tool_call_id: call.id,
-            name,
-            result,
-        };
-    }
-
-    extractToolCalls(llmOutput: any): LLMToolCall[] {
-        
-
-        return [];
-    }
-
-    async runFromLLMOutput(llmOutput: any) {
-        const calls = this.extractToolCalls(llmOutput);
-
-        if (calls.length === 0) {
-            return [];
-        }
-
-        return Promise.all(calls.map(call => this.run(call)));
-    }
+  async run(name: string, args: any) {
+    const t = this.tools.get(name);
+    if (!t) throw new Error(`unknown tool: ${name}`);
+    return t.execute(args ?? {});
+  }
 }
