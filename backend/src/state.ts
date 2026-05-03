@@ -1,7 +1,7 @@
-import { Observation, PromiseItem, Drift } from "./models.js";
+import { Observation, PromiseItem, Drift, KnowledgeItem } from "./models.js";
 
 export const state = {
-  knowledge: [] as ""[],
+  knowledge: [] as KnowledgeItem[],
   promises: [] as PromiseItem[],
   observations: [] as Observation[],   // full history
   observationQueue: [] as Observation[], // waiting on next reconcile
