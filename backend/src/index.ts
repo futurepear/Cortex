@@ -8,8 +8,11 @@ import { loadContext } from "./context.js";
 import { startDiscordBot } from "./integrations/discordBot.js";
 import promisesRouter from "./routes/promises.js";
 import contextRouter from "./routes/context.js";
+import cors from 'cors';
+
 
 const app = express();
+
 const port = Number(process.env.PORT) || 3001;
 const reconcileIntervalMs = Number(process.env.RECONCILE_INTERVAL_MS) || 20_000;
 
