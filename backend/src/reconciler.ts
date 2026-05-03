@@ -1,8 +1,8 @@
-import { PromiseItem } from "./models.js";
+import { PromiseItem, ContextItem } from "./models.js";
 import { runAgentLoop } from "./llm/gemini.js";
 import { tools } from "./tools/index.js";
 
-export async function reconcileBatch(observationsPrompt: string, promises: PromiseItem[]) {
+export async function reconcileBatch(observationsPrompt: string, promises: PromiseItem[], context: ContextItem[]) {
   if (!observationsPrompt.trim()) {
     console.log("nothing to reconcile");
     return;
@@ -10,17 +10,20 @@ export async function reconcileBatch(observationsPrompt: string, promises: Promi
 
   console.log("brain analyzing...");
 
-  const fullPrompt = buildPrompt(observationsPrompt, promises);
+  const fullPrompt = buildPrompt(observationsPrompt, promises, context);
   const report = await runAgentLoop(tools, fullPrompt);
 
   console.log("\n=== brain report ===\n" + report + "\n====================");
 }
 
-function buildPrompt(observations: string, promises: PromiseItem[]) {
+function buildPrompt(observations: string, promises: PromiseItem[], context: ContextItem[]) {
   return `you are cortex, the company brain. your job is to look at fresh observations and check if any company promise has drifted.
 
 PROMISES (things that should always be true):
 ${promises.map(p => `- ${p.title}: ${p.description}`).join("\n") || "(none)"}
+
+COMPANY CONTEXT:
+${context.map(c => `## ${c.title}\n${c.content}`).join("\n\n") || "(none)"}
 
 LATEST OBSERVATIONS:
 ${observations}

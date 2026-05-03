@@ -26,7 +26,7 @@ async function tick() {
   state.paused = true;
   try {
     const prompt = await drainObservations();
-    await reconcileBatch(prompt, state.promises);
+    await reconcileBatch(prompt, state.promises, state.context);
   } catch (err) {
     console.error("reconcile error:", (err as any).message);
   } finally {
