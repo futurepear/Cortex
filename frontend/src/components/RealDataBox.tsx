@@ -32,7 +32,7 @@ export default function RealDataBox({
         </div>
 
         {/* 2. MAIN CONTENT AREA */}
-        <div className="px-4 py-4 h-3/10 overflow-hidden">
+        <div className="scrollbox px-4 py-4 h-3/10 overflow-hidden">
             {realDataPromises?.toReversed().map(msg => (
               <PromiseItemC
                 key={msg.id}
@@ -46,8 +46,7 @@ export default function RealDataBox({
         <div className="flex-1 px-4 pb-3 mt-auto flex flex-col min-h-0">
           
           {/* Separator Line */}
-          <div className="h-[1px] w-full bg-line-2 mb-2" />
-          
+          <div className="h-[5px] w-full line-2 mb-2" />
           {/* Footer Titles */}
           <div className="flex flex-col mb-2">
             <span className="font-mono text-[9px] uppercase tracking-wider text-fg-faint">
@@ -57,6 +56,8 @@ export default function RealDataBox({
               Real Time Data
             </span>
           </div>
+
+          <div className="h-[2px] w-full bg-line-2 mb-2" />
 
           {/* SCROLL AREA */}
           <div className="min-h-0 overflow-y-auto w-full scrollbox">
