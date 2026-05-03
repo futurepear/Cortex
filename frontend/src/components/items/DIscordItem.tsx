@@ -1,33 +1,54 @@
-import React from "react";
+import type { DiscordMessage } from "../../../../backend/src/integrations/discordBot";
 
-import type {DiscordMessage} from "../../../../backend/src/integrations/discordBot"
-
-interface ItemProps extends React.HTMLAttributes<HTMLDivElement> {
+interface DiscordItemProps extends React.HTMLAttributes<HTMLDivElement> {
   message: DiscordMessage;
 }
 
-export default function Item({ message, className = "", ...props }: ItemProps) {
+export default function DiscordItem({
+  message,
+  className = "",
+  ...props
+}: DiscordItemProps) {
   return (
-    <div className={`para-box ${className}`} {...props}>
-      {/* Header / Meta */}
-      <div className="flex justify-between items-baseline mb-2">
-        <div className="font-mono text-fg uppercase tracking-widest text-xs font-bold">
+    <div
+      className={`
+        mt-2 p-3 group/item
+        max-h-[85px] max-w-full overflow-hidden 
+        transition-all duration-300 ease-in-out hover:max-h-[300px]
+        /* The Border logic */
+        border-b border-line-2 rounded-sm bg-bg-2/50
+        hover:border-cy/40 hover:shadow-[0_0_10px_rgba(0,243,255,0.05)]
+        ${className}
+      `}
+      {...props}
+    >
+      {/* Header & ID Row */}
+      <div className="flex justify-between items-start mb-1">
+        <div className="font-mono text-cy uppercase tracking-widest text-[10px] font-bold">
           {message.author}
         </div>
-        <span className="text-[10px] opacity-40 font-mono">
-          {message.id}
-        </span>
+        <div className="text-[9px] opacity-30 font-mono">
+          #{message.id}
+        </div>
       </div>
 
-      {/* Message Content */}
-      <div className="text-sm leading-relaxed mb-3">
+      {/* Content */}
+      <div className="text-[12px] leading-snug text-fg-muted mb-2">
         {message.content}
       </div>
 
-      {/* Footer / Link */}
-      <div className="text-[10px] opacity-50 hover:opacity-100 transition-opacity">
-        <a href={message.url} target="_blank" rel="noopener noreferrer" className="underline">
-          View in Discord
+      {/* Footer (Revealed/Brightened on hover) */}
+      <div className="flex justify-between items-center pt-2 border-t border-line-2/50 opacity-0 group-hover/item:opacity-100 transition-opacity duration-300">
+        <span className="text-[9px] font-mono opacity-40">
+          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </span>
+        <a
+          href={message.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[9px] font-mono text-cy underline uppercase tracking-tighter hover:text-fg transition-colors"
+        >
+          External_Link
         </a>
       </div>
     </div>
