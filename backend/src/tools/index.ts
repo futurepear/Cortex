@@ -27,6 +27,7 @@ import {
     watchHerokuLogs,
 } from "../integrations/index.js";
 import { getOAuthClient } from "../integrations/oauth.js";
+import { getTopKReportsByDate, searchReportsBM25 } from "../reports/index.js";
 import { ToolRegistry } from "./registry.js";
 
 const tools = new ToolRegistry();
@@ -234,6 +235,35 @@ tools.register({
         setAnalytics(oauth2Client);
         return { ok: true };
     },
+});
+
+tools.register({
+    name: "getTopKReportsByDate",
+    description: "Fetch the most recent stored reports, ordered by file timestamp descending.",
+    parameters: {
+        type: "object",
+        properties: {
+            k: { type: "number" },
+        },
+        required: ["k"],
+        additionalProperties: false,
+    },
+    execute: async ({ k }: { k: number }) => getTopKReportsByDate(k),
+});
+
+tools.register({
+    name: "searchReportsBM25",
+    description: "Search stored reports with BM25 ranking and return the top matching results.",
+    parameters: {
+        type: "object",
+        properties: {
+            query: { type: "string" },
+            k: { type: "number" },
+        },
+        required: ["query", "k"],
+        additionalProperties: false,
+    },
+    execute: async ({ query, k }: { query: string; k: number }) => searchReportsBM25(query, k),
 });
 
 tools.register({
