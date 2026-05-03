@@ -3,6 +3,7 @@ import { getNewMessages, sendAnnouncementMessage } from "../integrations/discord
 import { getGitHubIssues, getGitHubCommits, getGitHubRepoStats } from "../integrations/githubData.js";
 import { getFilteredHerokuRecentLogs } from "../integrations/herokuData.js";
 import { getCoreStats } from "../integrations/ga4.js";
+import { writeReport } from "../reports/index.js";
 
 // one shared registry for the whole app
 export const tools = new ToolRegistry();
@@ -71,4 +72,17 @@ tools.register({
   description: "GA4 core stats: activeUsers, sessions, pageViews, etc for the last week",
   parameters: { type: "object", properties: {} },
   execute: () => getCoreStats(),
+});
+
+tools.register({
+  name: "writeReport",
+  description: "save a report (analytics summary, drift findings, action taken, etc) to disk so we can search it later",
+  parameters: {
+    type: "object",
+    properties: {
+      report: { type: "string" },
+    },
+    required: ["report"],
+  },
+  execute: ({ report }) => writeReport(report),
 });
