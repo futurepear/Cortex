@@ -5,6 +5,12 @@ export interface Observation {
   timestamp?: number;
 }
 
+export interface KnowledgeItem {
+  id: string;
+  title: string;
+  content: string;
+}
+
 export interface PromiseItem {
   id: string;
   title: string;
