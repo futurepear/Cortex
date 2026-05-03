@@ -4,6 +4,7 @@ import { getGitHubIssues, getGitHubCommits, getGitHubRepoStats } from "../integr
 import { getFilteredHerokuRecentLogs } from "../integrations/herokuData.js";
 import { getCoreStats } from "../integrations/ga4.js";
 import { writeReport } from "../reports/index.js";
+import { dispatchAgent } from "../agent.js";
 
 // one shared registry for the whole app
 export const tools = new ToolRegistry();
@@ -72,6 +73,22 @@ tools.register({
   description: "GA4 core stats: activeUsers, sessions, pageViews, etc for the last week",
   parameters: { type: "object", properties: {} },
   execute: () => getCoreStats(),
+});
+
+tools.register({
+  name: "dispatchCodingAgent",
+  description: "send a coding task to a claude code agent that can read and edit the codebase. destructive, only use when drift looks like a code bug worth fixing",
+  parameters: {
+    type: "object",
+    properties: {
+      task: { type: "string", description: "what the agent should do, e.g. 'fix the null deref in src/foo.ts that's spamming heroku 5xx errors'" },
+    },
+    required: ["task"],
+  },
+  execute: async ({ task }) => {
+    const result = await dispatchAgent({ task, workdir: process.env.CODEBASE_PATH! });
+    return { text: result.text, toolUseCount: result.toolUses.length };
+  },
 });
 
 tools.register({

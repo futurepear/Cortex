@@ -1,0 +1,4 @@
+Cortex Analysis:
+- Status: No drift detected in app availability. Heroku logs show consistent heartbeat/status updates (200 OK) for web.1.
+- DAU Metric: GA4 reported 0 active users for the last week. This indicates a potential instrumentation failure or data sync issue rather than an actual crash, as the logs show active CCU (Concurrent User) counts of 1-2.
+- Recommended Action: Investigate GA4 tracking implementation. No destructive action needed.
