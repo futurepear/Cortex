@@ -8,12 +8,18 @@ import { loadContext, ensureSeedContext } from "./context.js";
 import { startDiscordBot } from "./integrations/discordBot.js";
 import promisesRouter from "./routes/promises.js";
 import contextRouter from "./routes/context.js";
+import issuesRouter from "./routes/issues.js";
+import terminalRouter from "./routes/terminal.js";
+import cors from 'cors';
+
 
 const app = express();
+
 const port = Number(process.env.PORT) || 3001;
 const reconcileIntervalMs = Number(process.env.RECONCILE_INTERVAL_MS) || 20_000;
 
 app.use(express.json());
+app.use(cors());
 
 // brain heartbeat. self-rescheduling so a slow tick can't overlap itself
 async function tick() {
@@ -65,8 +71,10 @@ app.get('/', (_req, res) => {
   res.json({ message: 'Welcome to Cortex Backend!' });
 });
 
-app.use(promisesRouter);
-app.use(contextRouter);
+app.use('/api', promisesRouter);
+app.use('/api', contextRouter);
+app.use('/api', issuesRouter);
+app.use('/api', terminalRouter);
 
 app.listen(port, () => {
   console.log(`Cortex backend listening on http://localhost:${port}`);

@@ -1,12 +1,12 @@
 import React from "react";
-
 interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
   tag?: string;
   className?: string;
   children?: React.ReactNode;
+  noPadding?: boolean;
 }
 
-export default function Box({ tag = "", className = "", children, ...props }: BoxProps) {
+export default function Box({ tag = "", className = "", children, noPadding = false, ...props }: BoxProps) {
   return (
     <div className={`flex flex-col select-none group ${className}`} {...props}>
       {/* 1. THE TAG (Folder Tab) */}
@@ -22,7 +22,7 @@ export default function Box({ tag = "", className = "", children, ...props }: Bo
       <div className="relative flex-1 border border-line rounded-b-md rounded-tr-md bg-bg-2 -mt-px overflow-hidden panel-glow">
         
         {/* Content Padding */}
-        <div className="p-4 h-full">
+        <div className={`${noPadding ? "" : "p-4"} h-full`}>
           {children || <DefaultContent />}
         </div>
 

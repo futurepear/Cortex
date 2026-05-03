@@ -1,14 +1,25 @@
 import type { PromiseItem } from "../../../../backend/src/models.ts"
 
+
+
 interface PromiseItemCProps extends React.HTMLAttributes<HTMLDivElement> {
   message: PromiseItem;
 }
+
 
 export default function PromiseItemC({
   message,
   className = "",
   ...props
 }: PromiseItemCProps) {
+  
+  const getSourceColor = () => {
+    const sources = message.sources?.map(s => s.toLowerCase()) || [];
+    if (sources.includes("ga4")) return "text-[#facc15]";    // Gold
+    if (sources.includes("heroku")) return "text-[#f97316]"; // Orange
+    return "text-cy"; // Default
+  };
+
   return (
     <div
       className={`
@@ -23,7 +34,7 @@ export default function PromiseItemC({
     >
       {/* Header & ID Row */}
       <div className="flex justify-between items-start mb-1">
-        <div className="font-mono text-cy uppercase tracking-widest text-[10px] font-bold">
+        <div className={`font-mono uppercase tracking-widest text-[10px] font-bold ${getSourceColor()}`}>
           {message.title}
         </div>
         <div className="text-[9px] opacity-30 font-mono">
@@ -36,14 +47,12 @@ export default function PromiseItemC({
         {message.description}
       </div>
 
-      {/* Footer (Revealed/Brightened on hover) */}
+      {/* Footer */}
       <div className="flex justify-between items-center pt-2 border-t border-line-2/50 opacity-0 group-hover/item:opacity-100 transition-opacity duration-300">
         <span className="text-[9px] font-mono opacity-40">
           {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
-        <p
-          className="text-[9px] font-mono text-cy underline uppercase tracking-tighter hover:text-fg transition-colors"
-        >
+        <p className="text-[9px] font-mono text-cy underline uppercase tracking-tighter hover:text-fg transition-colors">
           Sources: {message.sources?.join(", ")}
         </p>
       </div>
